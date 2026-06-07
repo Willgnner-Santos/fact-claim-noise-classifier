@@ -1,0 +1,58 @@
+{
+  "model": "claude_3_haiku",
+  "strategy": "decomposed",
+  "test_set": "bert_canonical",
+  "n_total": 2559,
+  "n_reused": 0,
+  "n_failed_or_unpredicted": 0,
+  "parse_failure_rate": 0.0,
+  "api_cost_usd_new_calls": 1.8795,
+  "n_evaluated": 2559,
+  "accuracy": 0.5881,
+  "f1_macro": 0.5127,
+  "f1_tese": 0.605,
+  "f1_fato": 0.1198,
+  "f1_ruido": 0.8134,
+  "per_class": {
+    "tese": {
+      "precision": 0.4558,
+      "recall": 0.8993,
+      "f1": 0.605,
+      "support": 814
+    },
+    "fato": {
+      "precision": 0.9655,
+      "recall": 0.0639,
+      "f1": 0.1198,
+      "support": 877
+    },
+    "ruido": {
+      "precision": 0.8011,
+      "recall": 0.826,
+      "f1": 0.8134,
+      "support": 868
+    }
+  },
+  "confusion_matrix": [
+    [
+      732,
+      2,
+      80
+    ],
+    [
+      723,
+      56,
+      98
+    ],
+    [
+      151,
+      0,
+      717
+    ]
+  ],
+  "labels": [
+    "tese",
+    "fato",
+    "ruido"
+  ]
+}

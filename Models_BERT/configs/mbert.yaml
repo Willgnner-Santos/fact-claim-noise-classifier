@@ -1,0 +1,25 @@
+# =============================================================================
+# mBERT (bert-base-multilingual-cased) — REPRODUÇÃO FIEL
+# =============================================================================
+# Notebooks: base-multilingual_30.ipynb (30% dos dados, 10 épocas) e training(1).ipynb
+# (template, 4 épocas). Reproduzimos a configuração do base-multilingual_30 com o
+# dataset completo. O LR no notebook 30 não era explícito (default do Trainer=5e-5);
+# fixamos 2e-5 para alinhar com os demais e com o template training(1).
+experiment_id: "mbert"
+description: "mBERT (bert-base-multilingual-cased) — reprodução fiel"
+
+model:
+  name: "bert-base-multilingual-cased"
+  family: "encoder"
+  is_reproduction: true
+
+data:
+  sample_frac: 1.0                   # original (notebook 30) usava 0.3
+
+train:
+  # [MELHORIA — uso pleno de GPU] batch 8 -> 128 (mBERT base ~178M cabe folgado).
+  # LR re-escalado para 4e-5 + warmup. Reprodução estrita: bs=8, lr=2e-5, warmup=0.
+  per_device_train_batch_size: 128
+  num_train_epochs: 10               # [FIEL] (template usava 4)
+  learning_rate: 4.0e-5
+  warmup_ratio: 0.06

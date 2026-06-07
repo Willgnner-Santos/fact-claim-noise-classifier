@@ -1,0 +1,10 @@
+experiment_id: "svm_linear"
+description: "SVM Linear (LinearSVC) — estado da arte pré-BERT em NLP"
+model:
+  name: "LinearSVC"
+  family: "svm"
+  requires_proba: false          # LinearSVC não tem predict_proba nativo
+  params:
+    C: 1.0
+    max_iter: 2000
+    random_state: 42

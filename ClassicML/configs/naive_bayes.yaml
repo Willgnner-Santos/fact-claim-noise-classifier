@@ -1,0 +1,10 @@
+experiment_id: "naive_bayes"
+description: "Multinomial Naive Bayes — baseline probabilístico clássico em NLP"
+model:
+  name: "MultinomialNB"
+  family: "probabilistic"
+  requires_proba: true
+  params:
+    alpha: 0.1
+vectorizer:
+  sublinear_tf: false            # MNB exige valores não-negativos (sem log)

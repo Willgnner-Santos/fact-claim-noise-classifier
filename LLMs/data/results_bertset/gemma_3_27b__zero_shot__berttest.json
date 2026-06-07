@@ -1,0 +1,58 @@
+{
+  "model": "gemma_3_27b",
+  "strategy": "zero_shot",
+  "test_set": "bert_canonical",
+  "n_total": 2559,
+  "n_reused": 0,
+  "n_failed_or_unpredicted": 0,
+  "parse_failure_rate": 0.0,
+  "api_cost_usd_new_calls": 0.5626,
+  "n_evaluated": 2559,
+  "accuracy": 0.7003,
+  "f1_macro": 0.6851,
+  "f1_tese": 0.6836,
+  "f1_fato": 0.8547,
+  "f1_ruido": 0.5169,
+  "per_class": {
+    "tese": {
+      "precision": 0.5313,
+      "recall": 0.9582,
+      "f1": 0.6836,
+      "support": 814
+    },
+    "fato": {
+      "precision": 0.911,
+      "recall": 0.805,
+      "f1": 0.8547,
+      "support": 877
+    },
+    "ruido": {
+      "precision": 0.9684,
+      "recall": 0.3525,
+      "f1": 0.5169,
+      "support": 868
+    }
+  },
+  "confusion_matrix": [
+    [
+      780,
+      29,
+      5
+    ],
+    [
+      166,
+      706,
+      5
+    ],
+    [
+      522,
+      40,
+      306
+    ]
+  ],
+  "labels": [
+    "tese",
+    "fato",
+    "ruido"
+  ]
+}

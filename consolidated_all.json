@@ -1,0 +1,2143 @@
+{
+  "test_set": "bert_canonical_2559",
+  "llm_all": [
+    {
+      "family": "LLM",
+      "model": "claude_3_haiku",
+      "strategy": "few_shot",
+      "n": 2559,
+      "n_fail": 347,
+      "parse_failure_rate": 0.1356,
+      "accuracy": 0.7984,
+      "f1_macro": 0.8551,
+      "f1_tese": 0.8823,
+      "f1_fato": 0.8675,
+      "f1_ruido": 0.8154,
+      "per_class": {
+        "tese": {
+          "precision": 0.8671,
+          "recall": 0.898,
+          "f1": 0.8823,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9389,
+          "recall": 0.8062,
+          "f1": 0.8675,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9821,
+          "recall": 0.697,
+          "f1": 0.8154,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          731,
+          36,
+          7
+        ],
+        [
+          82,
+          707,
+          4
+        ],
+        [
+          30,
+          10,
+          605
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "qwen3_32b",
+      "strategy": "evidence_constrained",
+      "n": 2559,
+      "n_fail": 3,
+      "parse_failure_rate": 0.0012,
+      "accuracy": 0.8496,
+      "f1_macro": 0.8526,
+      "f1_tese": 0.8119,
+      "f1_fato": 0.8534,
+      "f1_ruido": 0.8927,
+      "per_class": {
+        "tese": {
+          "precision": 0.705,
+          "recall": 0.957,
+          "f1": 0.8119,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9421,
+          "recall": 0.7799,
+          "f1": 0.8534,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9807,
+          "recall": 0.8191,
+          "f1": 0.8927,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          779,
+          25,
+          9
+        ],
+        [
+          187,
+          684,
+          5
+        ],
+        [
+          139,
+          17,
+          711
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "qwen3_32b",
+      "strategy": "few_shot",
+      "n": 2559,
+      "n_fail": 1,
+      "parse_failure_rate": 0.0004,
+      "accuracy": 0.803,
+      "f1_macro": 0.8042,
+      "f1_tese": 0.7761,
+      "f1_fato": 0.8461,
+      "f1_ruido": 0.7904,
+      "per_class": {
+        "tese": {
+          "precision": 0.6592,
+          "recall": 0.9435,
+          "f1": 0.7761,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.8834,
+          "recall": 0.8119,
+          "f1": 0.8461,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9796,
+          "recall": 0.6624,
+          "f1": 0.7904,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          768,
+          40,
+          6
+        ],
+        [
+          159,
+          712,
+          6
+        ],
+        [
+          238,
+          54,
+          575
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "claude_3_haiku",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 659,
+      "parse_failure_rate": 0.2575,
+      "accuracy": 0.6631,
+      "f1_macro": 0.7551,
+      "f1_tese": 0.7995,
+      "f1_fato": 0.8194,
+      "f1_ruido": 0.6464,
+      "per_class": {
+        "tese": {
+          "precision": 0.8159,
+          "recall": 0.7838,
+          "f1": 0.7995,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9476,
+          "recall": 0.7218,
+          "f1": 0.8194,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9467,
+          "recall": 0.4908,
+          "f1": 0.6464,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          638,
+          24,
+          11
+        ],
+        [
+          79,
+          633,
+          13
+        ],
+        [
+          65,
+          11,
+          426
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "mistral_large_3",
+      "strategy": "few_shot",
+      "n": 2559,
+      "n_fail": 1,
+      "parse_failure_rate": 0.0004,
+      "accuracy": 0.7534,
+      "f1_macro": 0.7449,
+      "f1_tese": 0.7235,
+      "f1_fato": 0.8877,
+      "f1_ruido": 0.6236,
+      "per_class": {
+        "tese": {
+          "precision": 0.5886,
+          "recall": 0.9386,
+          "f1": 0.7235,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9062,
+          "recall": 0.87,
+          "f1": 0.8877,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9593,
+          "recall": 0.462,
+          "f1": 0.6236,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          764,
+          39,
+          11
+        ],
+        [
+          108,
+          763,
+          6
+        ],
+        [
+          426,
+          40,
+          401
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "mistral_large_3",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.7436,
+      "f1_macro": 0.7371,
+      "f1_tese": 0.712,
+      "f1_fato": 0.8771,
+      "f1_ruido": 0.6224,
+      "per_class": {
+        "tese": {
+          "precision": 0.5708,
+          "recall": 0.9459,
+          "f1": 0.712,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9199,
+          "recall": 0.8381,
+          "f1": 0.8771,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9684,
+          "recall": 0.4585,
+          "f1": 0.6224,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          770,
+          38,
+          6
+        ],
+        [
+          135,
+          735,
+          7
+        ],
+        [
+          444,
+          26,
+          398
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "claude_3_haiku",
+      "strategy": "evidence_constrained",
+      "n": 2559,
+      "n_fail": 425,
+      "parse_failure_rate": 0.1661,
+      "accuracy": 0.6749,
+      "f1_macro": 0.7293,
+      "f1_tese": 0.7618,
+      "f1_fato": 0.7862,
+      "f1_ruido": 0.6398,
+      "per_class": {
+        "tese": {
+          "precision": 0.6595,
+          "recall": 0.9017,
+          "f1": 0.7618,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9667,
+          "recall": 0.6625,
+          "f1": 0.7862,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.981,
+          "recall": 0.4747,
+          "f1": 0.6398,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          734,
+          15,
+          5
+        ],
+        [
+          172,
+          581,
+          3
+        ],
+        [
+          207,
+          5,
+          412
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "mistral_large_3",
+      "strategy": "evidence_constrained",
+      "n": 2559,
+      "n_fail": 11,
+      "parse_failure_rate": 0.0043,
+      "accuracy": 0.7237,
+      "f1_macro": 0.711,
+      "f1_tese": 0.7049,
+      "f1_fato": 0.8707,
+      "f1_ruido": 0.5576,
+      "per_class": {
+        "tese": {
+          "precision": 0.5621,
+          "recall": 0.9447,
+          "f1": 0.7049,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.8942,
+          "recall": 0.8483,
+          "f1": 0.8707,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9741,
+          "recall": 0.3906,
+          "f1": 0.5576,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          769,
+          37,
+          5
+        ],
+        [
+          127,
+          744,
+          4
+        ],
+        [
+          472,
+          51,
+          339
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "claude_sonnet_46",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.7136,
+      "f1_macro": 0.7057,
+      "f1_tese": 0.6876,
+      "f1_fato": 0.8661,
+      "f1_ruido": 0.5635,
+      "per_class": {
+        "tese": {
+          "precision": 0.5332,
+          "recall": 0.9681,
+          "f1": 0.6876,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9598,
+          "recall": 0.7891,
+          "f1": 0.8661,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9611,
+          "recall": 0.3986,
+          "f1": 0.5635,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          788,
+          18,
+          8
+        ],
+        [
+          179,
+          692,
+          6
+        ],
+        [
+          511,
+          11,
+          346
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "magistral_small_2509",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 10,
+      "parse_failure_rate": 0.0039,
+      "accuracy": 0.7124,
+      "f1_macro": 0.7031,
+      "f1_tese": 0.6959,
+      "f1_fato": 0.8475,
+      "f1_ruido": 0.5658,
+      "per_class": {
+        "tese": {
+          "precision": 0.5476,
+          "recall": 0.9545,
+          "f1": 0.6959,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9032,
+          "recall": 0.7982,
+          "f1": 0.8475,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9746,
+          "recall": 0.3986,
+          "f1": 0.5658,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          777,
+          29,
+          4
+        ],
+        [
+          170,
+          700,
+          5
+        ],
+        [
+          472,
+          46,
+          346
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "gemma_3_27b",
+      "strategy": "evidence_constrained",
+      "n": 2559,
+      "n_fail": 37,
+      "parse_failure_rate": 0.0145,
+      "accuracy": 0.6979,
+      "f1_macro": 0.6956,
+      "f1_tese": 0.6781,
+      "f1_fato": 0.8487,
+      "f1_ruido": 0.5599,
+      "per_class": {
+        "tese": {
+          "precision": 0.5277,
+          "recall": 0.9484,
+          "f1": 0.6781,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9492,
+          "recall": 0.7674,
+          "f1": 0.8487,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9743,
+          "recall": 0.3929,
+          "f1": 0.5599,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          772,
+          20,
+          3
+        ],
+        [
+          195,
+          673,
+          6
+        ],
+        [
+          496,
+          16,
+          341
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "deepseek_v32",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 1,
+      "parse_failure_rate": 0.0004,
+      "accuracy": 0.7034,
+      "f1_macro": 0.6955,
+      "f1_tese": 0.6788,
+      "f1_fato": 0.8539,
+      "f1_ruido": 0.5536,
+      "per_class": {
+        "tese": {
+          "precision": 0.5252,
+          "recall": 0.9595,
+          "f1": 0.6788,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9485,
+          "recall": 0.7765,
+          "f1": 0.8539,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9575,
+          "recall": 0.3894,
+          "f1": 0.5536,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          781,
+          25,
+          8
+        ],
+        [
+          188,
+          681,
+          7
+        ],
+        [
+          518,
+          12,
+          338
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "gemma_3_27b",
+      "strategy": "few_shot",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.7038,
+      "f1_macro": 0.6938,
+      "f1_tese": 0.6858,
+      "f1_fato": 0.8451,
+      "f1_ruido": 0.5504,
+      "per_class": {
+        "tese": {
+          "precision": 0.5306,
+          "recall": 0.9693,
+          "f1": 0.6858,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9301,
+          "recall": 0.7742,
+          "f1": 0.8451,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9737,
+          "recall": 0.3836,
+          "f1": 0.5504,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          789,
+          22,
+          3
+        ],
+        [
+          192,
+          679,
+          6
+        ],
+        [
+          506,
+          29,
+          333
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "claude_sonnet_46",
+      "strategy": "few_shot",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.7046,
+      "f1_macro": 0.6907,
+      "f1_tese": 0.682,
+      "f1_fato": 0.874,
+      "f1_ruido": 0.516,
+      "per_class": {
+        "tese": {
+          "precision": 0.5272,
+          "recall": 0.9656,
+          "f1": 0.682,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.948,
+          "recall": 0.8107,
+          "f1": 0.874,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9623,
+          "recall": 0.3525,
+          "f1": 0.516,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          786,
+          20,
+          8
+        ],
+        [
+          162,
+          711,
+          4
+        ],
+        [
+          543,
+          19,
+          306
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "deepseek_v32",
+      "strategy": "few_shot",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.6971,
+      "f1_macro": 0.6887,
+      "f1_tese": 0.6749,
+      "f1_fato": 0.8502,
+      "f1_ruido": 0.5411,
+      "per_class": {
+        "tese": {
+          "precision": 0.517,
+          "recall": 0.9717,
+          "f1": 0.6749,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9639,
+          "recall": 0.7605,
+          "f1": 0.8502,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9674,
+          "recall": 0.3756,
+          "f1": 0.5411,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          791,
+          16,
+          7
+        ],
+        [
+          206,
+          667,
+          4
+        ],
+        [
+          533,
+          9,
+          326
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "magistral_small_2509",
+      "strategy": "few_shot",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.6932,
+      "f1_macro": 0.6881,
+      "f1_tese": 0.6727,
+      "f1_fato": 0.8187,
+      "f1_ruido": 0.5728,
+      "per_class": {
+        "tese": {
+          "precision": 0.5172,
+          "recall": 0.9619,
+          "f1": 0.6727,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9342,
+          "recall": 0.7286,
+          "f1": 0.8187,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9751,
+          "recall": 0.4055,
+          "f1": 0.5728,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          783,
+          27,
+          4
+        ],
+        [
+          233,
+          639,
+          5
+        ],
+        [
+          498,
+          18,
+          352
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "gemma_3_27b",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.7003,
+      "f1_macro": 0.6851,
+      "f1_tese": 0.6836,
+      "f1_fato": 0.8547,
+      "f1_ruido": 0.5169,
+      "per_class": {
+        "tese": {
+          "precision": 0.5313,
+          "recall": 0.9582,
+          "f1": 0.6836,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.911,
+          "recall": 0.805,
+          "f1": 0.8547,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9684,
+          "recall": 0.3525,
+          "f1": 0.5169,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          780,
+          29,
+          5
+        ],
+        [
+          166,
+          706,
+          5
+        ],
+        [
+          522,
+          40,
+          306
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "qwen3_32b",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 1,
+      "parse_failure_rate": 0.0004,
+      "accuracy": 0.6971,
+      "f1_macro": 0.6801,
+      "f1_tese": 0.6786,
+      "f1_fato": 0.8519,
+      "f1_ruido": 0.5097,
+      "per_class": {
+        "tese": {
+          "precision": 0.5338,
+          "recall": 0.9312,
+          "f1": 0.6786,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.8788,
+          "recall": 0.8267,
+          "f1": 0.8519,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9617,
+          "recall": 0.3468,
+          "f1": 0.5097,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          758,
+          51,
+          5
+        ],
+        [
+          145,
+          725,
+          7
+        ],
+        [
+          517,
+          49,
+          301
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "sabia4",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 1,
+      "parse_failure_rate": 0.0004,
+      "accuracy": 0.6964,
+      "f1_macro": 0.68,
+      "f1_tese": 0.679,
+      "f1_fato": 0.867,
+      "f1_ruido": 0.494,
+      "per_class": {
+        "tese": {
+          "precision": 0.5221,
+          "recall": 0.9705,
+          "f1": 0.679,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9424,
+          "recall": 0.8027,
+          "f1": 0.867,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9664,
+          "recall": 0.3318,
+          "f1": 0.494,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          790,
+          19,
+          5
+        ],
+        [
+          167,
+          704,
+          5
+        ],
+        [
+          556,
+          24,
+          288
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "sabia4",
+      "strategy": "few_shot",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.6854,
+      "f1_macro": 0.6622,
+      "f1_tese": 0.6698,
+      "f1_fato": 0.874,
+      "f1_ruido": 0.4427,
+      "per_class": {
+        "tese": {
+          "precision": 0.5124,
+          "recall": 0.9668,
+          "f1": 0.6698,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9373,
+          "recall": 0.8187,
+          "f1": 0.874,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9689,
+          "recall": 0.2869,
+          "f1": 0.4427,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          787,
+          24,
+          3
+        ],
+        [
+          154,
+          718,
+          5
+        ],
+        [
+          595,
+          24,
+          249
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "claude_sonnet_46",
+      "strategy": "evidence_constrained",
+      "n": 2559,
+      "n_fail": 2,
+      "parse_failure_rate": 0.0008,
+      "accuracy": 0.6757,
+      "f1_macro": 0.6584,
+      "f1_tese": 0.6619,
+      "f1_fato": 0.8503,
+      "f1_ruido": 0.4629,
+      "per_class": {
+        "tese": {
+          "precision": 0.5029,
+          "recall": 0.9681,
+          "f1": 0.6619,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9481,
+          "recall": 0.7708,
+          "f1": 0.8503,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9567,
+          "recall": 0.3053,
+          "f1": 0.4629,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          788,
+          17,
+          7
+        ],
+        [
+          196,
+          676,
+          5
+        ],
+        [
+          583,
+          20,
+          265
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "deepseek_v32",
+      "strategy": "evidence_constrained",
+      "n": 2559,
+      "n_fail": 7,
+      "parse_failure_rate": 0.0027,
+      "accuracy": 0.662,
+      "f1_macro": 0.6489,
+      "f1_tese": 0.6537,
+      "f1_fato": 0.8202,
+      "f1_ruido": 0.4728,
+      "per_class": {
+        "tese": {
+          "precision": 0.4934,
+          "recall": 0.9681,
+          "f1": 0.6537,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9518,
+          "recall": 0.7206,
+          "f1": 0.8202,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9416,
+          "recall": 0.3157,
+          "f1": 0.4728,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          788,
+          15,
+          9
+        ],
+        [
+          236,
+          632,
+          8
+        ],
+        [
+          573,
+          17,
+          274
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "qwen3_32b",
+      "strategy": "decomposed",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.6374,
+      "f1_macro": 0.6318,
+      "f1_tese": 0.6342,
+      "f1_fato": 0.5156,
+      "f1_ruido": 0.7457,
+      "per_class": {
+        "tese": {
+          "precision": 0.4681,
+          "recall": 0.9828,
+          "f1": 0.6342,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9871,
+          "recall": 0.3489,
+          "f1": 0.5156,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9722,
+          "recall": 0.6048,
+          "f1": 0.7457,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          800,
+          4,
+          10
+        ],
+        [
+          566,
+          306,
+          5
+        ],
+        [
+          343,
+          0,
+          525
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "sabia4",
+      "strategy": "evidence_constrained",
+      "n": 2559,
+      "n_fail": 5,
+      "parse_failure_rate": 0.002,
+      "accuracy": 0.6612,
+      "f1_macro": 0.6296,
+      "f1_tese": 0.6561,
+      "f1_fato": 0.8594,
+      "f1_ruido": 0.3733,
+      "per_class": {
+        "tese": {
+          "precision": 0.4972,
+          "recall": 0.9644,
+          "f1": 0.6561,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9217,
+          "recall": 0.805,
+          "f1": 0.8594,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9617,
+          "recall": 0.2316,
+          "f1": 0.3733,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          785,
+          25,
+          4
+        ],
+        [
+          164,
+          706,
+          4
+        ],
+        [
+          630,
+          35,
+          201
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "magistral_small_2509",
+      "strategy": "decomposed",
+      "n": 2559,
+      "n_fail": 1,
+      "parse_failure_rate": 0.0004,
+      "accuracy": 0.662,
+      "f1_macro": 0.6165,
+      "f1_tese": 0.6299,
+      "f1_fato": 0.3302,
+      "f1_ruido": 0.8894,
+      "per_class": {
+        "tese": {
+          "precision": 0.4986,
+          "recall": 0.855,
+          "f1": 0.6299,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9831,
+          "recall": 0.1984,
+          "f1": 0.3302,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.8365,
+          "recall": 0.9493,
+          "f1": 0.8894,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          696,
+          3,
+          115
+        ],
+        [
+          657,
+          174,
+          46
+        ],
+        [
+          43,
+          0,
+          824
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "gemma_3_27b",
+      "strategy": "decomposed",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.6252,
+      "f1_macro": 0.6051,
+      "f1_tese": 0.6041,
+      "f1_fato": 0.4557,
+      "f1_ruido": 0.7553,
+      "per_class": {
+        "tese": {
+          "precision": 0.4872,
+          "recall": 0.7948,
+          "f1": 0.6041,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9848,
+          "recall": 0.2965,
+          "f1": 0.4557,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.7166,
+          "recall": 0.7984,
+          "f1": 0.7553,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          647,
+          4,
+          163
+        ],
+        [
+          506,
+          260,
+          111
+        ],
+        [
+          175,
+          0,
+          693
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "magistral_small_2509",
+      "strategy": "evidence_constrained",
+      "n": 2559,
+      "n_fail": 65,
+      "parse_failure_rate": 0.0254,
+      "accuracy": 0.6084,
+      "f1_macro": 0.5858,
+      "f1_tese": 0.6249,
+      "f1_fato": 0.7948,
+      "f1_ruido": 0.3378,
+      "per_class": {
+        "tese": {
+          "precision": 0.4657,
+          "recall": 0.9496,
+          "f1": 0.6249,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9352,
+          "recall": 0.691,
+          "f1": 0.7948,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.957,
+          "recall": 0.2051,
+          "f1": 0.3378,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          773,
+          16,
+          4
+        ],
+        [
+          253,
+          606,
+          4
+        ],
+        [
+          634,
+          26,
+          178
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "sabia4",
+      "strategy": "decomposed",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.5737,
+      "f1_macro": 0.5642,
+      "f1_tese": 0.5969,
+      "f1_fato": 0.5378,
+      "f1_ruido": 0.5578,
+      "per_class": {
+        "tese": {
+          "precision": 0.4277,
+          "recall": 0.9877,
+          "f1": 0.5969,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9878,
+          "recall": 0.3694,
+          "f1": 0.5378,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9687,
+          "recall": 0.3917,
+          "f1": 0.5578,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          804,
+          3,
+          7
+        ],
+        [
+          549,
+          324,
+          4
+        ],
+        [
+          527,
+          1,
+          340
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "mistral_large_3",
+      "strategy": "decomposed",
+      "n": 2559,
+      "n_fail": 12,
+      "parse_failure_rate": 0.0047,
+      "accuracy": 0.5795,
+      "f1_macro": 0.5577,
+      "f1_tese": 0.6019,
+      "f1_fato": 0.3555,
+      "f1_ruido": 0.7157,
+      "per_class": {
+        "tese": {
+          "precision": 0.4333,
+          "recall": 0.9853,
+          "f1": 0.6019,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9896,
+          "recall": 0.2166,
+          "f1": 0.3555,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9742,
+          "recall": 0.5657,
+          "f1": 0.7157,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          802,
+          2,
+          7
+        ],
+        [
+          681,
+          190,
+          6
+        ],
+        [
+          368,
+          0,
+          491
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "deepseek_v32",
+      "strategy": "decomposed",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.5502,
+      "f1_macro": 0.5382,
+      "f1_tese": 0.5759,
+      "f1_fato": 0.4722,
+      "f1_ruido": 0.5665,
+      "per_class": {
+        "tese": {
+          "precision": 0.413,
+          "recall": 0.9509,
+          "f1": 0.5759,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9891,
+          "recall": 0.3101,
+          "f1": 0.4722,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.8829,
+          "recall": 0.4171,
+          "f1": 0.5665,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          774,
+          2,
+          38
+        ],
+        [
+          595,
+          272,
+          10
+        ],
+        [
+          505,
+          1,
+          362
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "claude_3_haiku",
+      "strategy": "decomposed",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.5881,
+      "f1_macro": 0.5127,
+      "f1_tese": 0.605,
+      "f1_fato": 0.1198,
+      "f1_ruido": 0.8134,
+      "per_class": {
+        "tese": {
+          "precision": 0.4558,
+          "recall": 0.8993,
+          "f1": 0.605,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9655,
+          "recall": 0.0639,
+          "f1": 0.1198,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.8011,
+          "recall": 0.826,
+          "f1": 0.8134,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          732,
+          2,
+          80
+        ],
+        [
+          723,
+          56,
+          98
+        ],
+        [
+          151,
+          0,
+          717
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "claude_sonnet_46",
+      "strategy": "decomposed",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.5283,
+      "f1_macro": 0.502,
+      "f1_tese": 0.5737,
+      "f1_fato": 0.5651,
+      "f1_ruido": 0.3672,
+      "per_class": {
+        "tese": {
+          "precision": 0.4034,
+          "recall": 0.9926,
+          "f1": 0.5737,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9886,
+          "recall": 0.3957,
+          "f1": 0.5651,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.961,
+          "recall": 0.227,
+          "f1": 0.3672,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          808,
+          3,
+          3
+        ],
+        [
+          525,
+          347,
+          5
+        ],
+        [
+          670,
+          1,
+          197
+        ]
+      ]
+    }
+  ],
+  "llm_best_per_model": [
+    {
+      "family": "LLM",
+      "model": "claude_3_haiku",
+      "strategy": "few_shot",
+      "n": 2559,
+      "n_fail": 347,
+      "parse_failure_rate": 0.1356,
+      "accuracy": 0.7984,
+      "f1_macro": 0.8551,
+      "f1_tese": 0.8823,
+      "f1_fato": 0.8675,
+      "f1_ruido": 0.8154,
+      "per_class": {
+        "tese": {
+          "precision": 0.8671,
+          "recall": 0.898,
+          "f1": 0.8823,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9389,
+          "recall": 0.8062,
+          "f1": 0.8675,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9821,
+          "recall": 0.697,
+          "f1": 0.8154,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          731,
+          36,
+          7
+        ],
+        [
+          82,
+          707,
+          4
+        ],
+        [
+          30,
+          10,
+          605
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "qwen3_32b",
+      "strategy": "evidence_constrained",
+      "n": 2559,
+      "n_fail": 3,
+      "parse_failure_rate": 0.0012,
+      "accuracy": 0.8496,
+      "f1_macro": 0.8526,
+      "f1_tese": 0.8119,
+      "f1_fato": 0.8534,
+      "f1_ruido": 0.8927,
+      "per_class": {
+        "tese": {
+          "precision": 0.705,
+          "recall": 0.957,
+          "f1": 0.8119,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9421,
+          "recall": 0.7799,
+          "f1": 0.8534,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9807,
+          "recall": 0.8191,
+          "f1": 0.8927,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          779,
+          25,
+          9
+        ],
+        [
+          187,
+          684,
+          5
+        ],
+        [
+          139,
+          17,
+          711
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "mistral_large_3",
+      "strategy": "few_shot",
+      "n": 2559,
+      "n_fail": 1,
+      "parse_failure_rate": 0.0004,
+      "accuracy": 0.7534,
+      "f1_macro": 0.7449,
+      "f1_tese": 0.7235,
+      "f1_fato": 0.8877,
+      "f1_ruido": 0.6236,
+      "per_class": {
+        "tese": {
+          "precision": 0.5886,
+          "recall": 0.9386,
+          "f1": 0.7235,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9062,
+          "recall": 0.87,
+          "f1": 0.8877,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9593,
+          "recall": 0.462,
+          "f1": 0.6236,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          764,
+          39,
+          11
+        ],
+        [
+          108,
+          763,
+          6
+        ],
+        [
+          426,
+          40,
+          401
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "claude_sonnet_46",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 0,
+      "parse_failure_rate": 0.0,
+      "accuracy": 0.7136,
+      "f1_macro": 0.7057,
+      "f1_tese": 0.6876,
+      "f1_fato": 0.8661,
+      "f1_ruido": 0.5635,
+      "per_class": {
+        "tese": {
+          "precision": 0.5332,
+          "recall": 0.9681,
+          "f1": 0.6876,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9598,
+          "recall": 0.7891,
+          "f1": 0.8661,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9611,
+          "recall": 0.3986,
+          "f1": 0.5635,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          788,
+          18,
+          8
+        ],
+        [
+          179,
+          692,
+          6
+        ],
+        [
+          511,
+          11,
+          346
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "magistral_small_2509",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 10,
+      "parse_failure_rate": 0.0039,
+      "accuracy": 0.7124,
+      "f1_macro": 0.7031,
+      "f1_tese": 0.6959,
+      "f1_fato": 0.8475,
+      "f1_ruido": 0.5658,
+      "per_class": {
+        "tese": {
+          "precision": 0.5476,
+          "recall": 0.9545,
+          "f1": 0.6959,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9032,
+          "recall": 0.7982,
+          "f1": 0.8475,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9746,
+          "recall": 0.3986,
+          "f1": 0.5658,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          777,
+          29,
+          4
+        ],
+        [
+          170,
+          700,
+          5
+        ],
+        [
+          472,
+          46,
+          346
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "gemma_3_27b",
+      "strategy": "evidence_constrained",
+      "n": 2559,
+      "n_fail": 37,
+      "parse_failure_rate": 0.0145,
+      "accuracy": 0.6979,
+      "f1_macro": 0.6956,
+      "f1_tese": 0.6781,
+      "f1_fato": 0.8487,
+      "f1_ruido": 0.5599,
+      "per_class": {
+        "tese": {
+          "precision": 0.5277,
+          "recall": 0.9484,
+          "f1": 0.6781,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9492,
+          "recall": 0.7674,
+          "f1": 0.8487,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9743,
+          "recall": 0.3929,
+          "f1": 0.5599,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          772,
+          20,
+          3
+        ],
+        [
+          195,
+          673,
+          6
+        ],
+        [
+          496,
+          16,
+          341
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "deepseek_v32",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 1,
+      "parse_failure_rate": 0.0004,
+      "accuracy": 0.7034,
+      "f1_macro": 0.6955,
+      "f1_tese": 0.6788,
+      "f1_fato": 0.8539,
+      "f1_ruido": 0.5536,
+      "per_class": {
+        "tese": {
+          "precision": 0.5252,
+          "recall": 0.9595,
+          "f1": 0.6788,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9485,
+          "recall": 0.7765,
+          "f1": 0.8539,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9575,
+          "recall": 0.3894,
+          "f1": 0.5536,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          781,
+          25,
+          8
+        ],
+        [
+          188,
+          681,
+          7
+        ],
+        [
+          518,
+          12,
+          338
+        ]
+      ]
+    },
+    {
+      "family": "LLM",
+      "model": "sabia4",
+      "strategy": "zero_shot",
+      "n": 2559,
+      "n_fail": 1,
+      "parse_failure_rate": 0.0004,
+      "accuracy": 0.6964,
+      "f1_macro": 0.68,
+      "f1_tese": 0.679,
+      "f1_fato": 0.867,
+      "f1_ruido": 0.494,
+      "per_class": {
+        "tese": {
+          "precision": 0.5221,
+          "recall": 0.9705,
+          "f1": 0.679,
+          "support": 814
+        },
+        "fato": {
+          "precision": 0.9424,
+          "recall": 0.8027,
+          "f1": 0.867,
+          "support": 877
+        },
+        "ruido": {
+          "precision": 0.9664,
+          "recall": 0.3318,
+          "f1": 0.494,
+          "support": 868
+        }
+      },
+      "confusion_matrix": [
+        [
+          790,
+          19,
+          5
+        ],
+        [
+          167,
+          704,
+          5
+        ],
+        [
+          556,
+          24,
+          288
+        ]
+      ]
+    }
+  ],
+  "classic": [
+    {
+      "family": "ClassicML",
+      "model": "lightgbm",
+      "f1_macro": 0.9732,
+      "accuracy": 0.9734,
+      "mcc": 0.9602
+    },
+    {
+      "family": "ClassicML",
+      "model": "svm_linear",
+      "f1_macro": 0.9661,
+      "accuracy": 0.9664,
+      "mcc": 0.9496
+    },
+    {
+      "family": "ClassicML",
+      "model": "svm_rbf",
+      "f1_macro": 0.9637,
+      "accuracy": 0.964,
+      "mcc": 0.9461
+    },
+    {
+      "family": "ClassicML",
+      "model": "logistic_regression",
+      "f1_macro": 0.9629,
+      "accuracy": 0.9633,
+      "mcc": 0.945
+    },
+    {
+      "family": "ClassicML",
+      "model": "random_forest",
+      "f1_macro": 0.9503,
+      "accuracy": 0.9508,
+      "mcc": 0.9266
+    },
+    {
+      "family": "ClassicML",
+      "model": "extra_trees",
+      "f1_macro": 0.9498,
+      "accuracy": 0.9504,
+      "mcc": 0.9259
+    },
+    {
+      "family": "ClassicML",
+      "model": "naive_bayes",
+      "f1_macro": 0.848,
+      "accuracy": 0.8468,
+      "mcc": 0.7747
+    },
+    {
+      "family": "ClassicML",
+      "model": "xgboost",
+      "f1_macro": 0.6424,
+      "accuracy": 0.7054,
+      "mcc": 0.6001
+    }
+  ],
+  "bert": [
+    {
+      "family": "BERT",
+      "model": "bertimbau_large",
+      "f1_macro": 0.9901,
+      "accuracy": 0.9902,
+      "mcc": 0.9853,
+      "f1_tese": 0.9847,
+      "f1_fato": 0.9863,
+      "f1_ruido": 0.9994
+    },
+    {
+      "family": "BERT",
+      "model": "bertimbau_base",
+      "f1_macro": 0.9897,
+      "accuracy": 0.9898,
+      "mcc": 0.9848,
+      "f1_tese": 0.9841,
+      "f1_fato": 0.9857,
+      "f1_ruido": 0.9994
+    },
+    {
+      "family": "BERT",
+      "model": "roberta_lexpt",
+      "f1_macro": 0.9897,
+      "accuracy": 0.9898,
+      "mcc": 0.9848,
+      "f1_tese": 0.9841,
+      "f1_fato": 0.9868,
+      "f1_ruido": 0.9983
+    },
+    {
+      "family": "BERT",
+      "model": "xlmr",
+      "f1_macro": 0.9893,
+      "accuracy": 0.9894,
+      "mcc": 0.9842,
+      "f1_tese": 0.9834,
+      "f1_fato": 0.9863,
+      "f1_ruido": 0.9983
+    },
+    {
+      "family": "BERT",
+      "model": "roberta_crawlpt",
+      "f1_macro": 0.9878,
+      "accuracy": 0.9879,
+      "mcc": 0.9819,
+      "f1_tese": 0.9817,
+      "f1_fato": 0.9833,
+      "f1_ruido": 0.9983
+    },
+    {
+      "family": "BERT",
+      "model": "mbert",
+      "f1_macro": 0.9866,
+      "accuracy": 0.9867,
+      "mcc": 0.9801,
+      "f1_tese": 0.9797,
+      "f1_fato": 0.9812,
+      "f1_ruido": 0.9988
+    },
+    {
+      "family": "BERT",
+      "model": "mdeberta_v3",
+      "f1_macro": 0.9842,
+      "accuracy": 0.9844,
+      "mcc": 0.9766,
+      "f1_tese": 0.9768,
+      "f1_fato": 0.9787,
+      "f1_ruido": 0.9971
+    }
+  ],
+  "bert_ensemble": {
+    "family": "BERT",
+    "model": "ensemble_top3",
+    "f1_macro": 0.9905,
+    "accuracy": 0.9906
+  }
+}

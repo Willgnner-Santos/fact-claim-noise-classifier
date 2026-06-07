@@ -1,0 +1,52 @@
+# ── Dados (corpus confidencial) ───────────────────────────────────────────────
+Models_BERT/Data/
+LLMs/data/splits/
+
+# ── Credenciais ────────────────────────────────────────────────────────────────
+.env
+**/.env
+
+# ── Pesos BERT e checkpoints de treino (arquivo .safetensors, .bin, .pt) ──────
+**/*.safetensors
+**/*.bin
+**/*.pt
+**/*.ckpt
+
+# ── Checkpoints LLM (contêm índice vinculado ao corpus) ───────────────────────
+LLMs/data/checkpoints/
+LLMs/data/checkpoints_bertset/
+
+# ── pkl de modelos intermediários (só lightgbm/model_best.pkl sobe) ───────────
+ClassicML/experiments/*/checkpoints/model_fold*.pkl
+ClassicML/experiments/extra_trees__*/
+ClassicML/experiments/svm_rbf__*/
+ClassicML/experiments/random_forest__*/
+ClassicML/experiments/svm_linear__*/
+ClassicML/experiments/naive_bayes__*/
+ClassicML/experiments/logistic_regression__*/
+ClassicML/experiments/xgboost__*/
+
+# ── Arquivos do processo editorial ────────────────────────────────────────────
+*.tex
+Revisão-Literatura/
+Métricas_Avaliação_Modelos.xlsx
+figuras_resultados/
+
+# ── Ambientes virtuais e caches ───────────────────────────────────────────────
+venv/
+**/__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+.ipynb_checkpoints/
+
+# ── Logs e temporários ────────────────────────────────────────────────────────
+*.log
+LLMs/data/reeval_run.log
+
+# ── OS / IDE ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

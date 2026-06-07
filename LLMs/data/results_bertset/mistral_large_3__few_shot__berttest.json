@@ -1,0 +1,58 @@
+{
+  "model": "mistral_large_3",
+  "strategy": "few_shot",
+  "test_set": "bert_canonical",
+  "n_total": 2559,
+  "n_reused": 0,
+  "n_failed_or_unpredicted": 1,
+  "parse_failure_rate": 0.0004,
+  "api_cost_usd_new_calls": 28.2417,
+  "n_evaluated": 2558,
+  "accuracy": 0.7537,
+  "f1_macro": 0.7451,
+  "f1_tese": 0.7235,
+  "f1_fato": 0.8877,
+  "f1_ruido": 0.6241,
+  "per_class": {
+    "tese": {
+      "precision": 0.5886,
+      "recall": 0.9386,
+      "f1": 0.7235,
+      "support": 814
+    },
+    "fato": {
+      "precision": 0.9062,
+      "recall": 0.87,
+      "f1": 0.8877,
+      "support": 877
+    },
+    "ruido": {
+      "precision": 0.9593,
+      "recall": 0.4625,
+      "f1": 0.6241,
+      "support": 867
+    }
+  },
+  "confusion_matrix": [
+    [
+      764,
+      39,
+      11
+    ],
+    [
+      108,
+      763,
+      6
+    ],
+    [
+      426,
+      40,
+      401
+    ]
+  ],
+  "labels": [
+    "tese",
+    "fato",
+    "ruido"
+  ]
+}

@@ -1,0 +1,34 @@
+# =============================================================================
+# Longformer PT — MODELO NOVO long-context (melhoria principal)
+# =============================================================================
+# Ataca diretamente o problema dos textos longos: a mediana do dataset é ~799
+# palavras e p90 ~3.430, então a maioria excede os 512 tokens dos encoders padrão.
+# O Longformer processa até 4096 tokens nativamente (atenção esparsa por janelas +
+# atenção global), capturando o documento inteiro em vez de só o início.
+#
+# Modelo: pierreguillou/longformer-base-4096-portuguese (Longformer PT, 4096 tokens).
+# Justificativa: estado da arte para classificação de documentos longos em PT,
+# evita a perda de informação da truncação em 512.
+experiment_id: "longformer_pt"
+description: "Longformer PT 4096 (pierreguillou/longformer-base-4096-portuguese) — long-context"
+
+model:
+  name: "pierreguillou/longformer-base-4096-portuguese"
+  family: "longformer"
+  is_reproduction: false
+
+tokenization:
+  max_length: 4096                   # long-context nativo
+  long_text_strategy: "truncate"     # já cobre quase todo o dataset em 4096
+
+train:
+  # Long-context (4096 tokens) consome MUITA memória de ativação — mesmo em A100/H100
+  # o batch é menor que nos modelos de 512 tokens. Em A100-40GB: bs=8 cabe com bf16
+  # (em H100-80GB pode tentar 16). batch efetivo 32 via acumulação.
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 4     # batch efetivo = 32
+  gradient_checkpointing: true       # troca memória por compute; mantém para folga
+  num_train_epochs: 5                # treino mais caro; menos épocas
+  learning_rate: 3.0e-5
+  warmup_ratio: 0.1
+  group_by_length: true              # ganho enorme aqui: evita padding até 4096

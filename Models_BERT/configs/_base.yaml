@@ -1,0 +1,165 @@
+# =============================================================================
+# Configuração BASE — herdada por todos os experimentos
+# =============================================================================
+# Cada config de modelo (roberta_lexpt.yaml, mbert.yaml, ...) sobrescreve apenas
+# o que difere daqui. A mesclagem é profunda (deep-merge) — ver src/ftr/config.py
+#
+# Valores marcados como "[FIEL]" reproduzem os notebooks originais.
+# Valores marcados como "[MELHORIA]" foram adicionados nesta refatoração.
+# -----------------------------------------------------------------------------
+
+project_name: "Fato_Tese_Ruido"
+
+# --- Reprodutibilidade ------------------------------------------------------
+seed: 42                      # [FIEL] random_state=42 nos originais
+deterministic: false          # true = mais lento, reprodução bit-a-bit
+# Multi-seed: roda 1 seed por execução e consolida mean±std (ver run_all.py).
+# Necessário para revistas de alto impacto (evita "lucky split").
+multi_seed:
+  enabled: true
+  seeds: [42, 43, 44]          # 3 seeds → mean±std da métrica principal
+
+# --- Rótulos (mapeamento canônico — NÃO ALTERAR) ----------------------------
+labels:
+  id2label: {0: "tese", 1: "fato", 2: "ruido"}
+  num_labels: 3
+
+# --- Dados ------------------------------------------------------------------
+data:
+  raw_file: "dataset_FINAL.json"   # relativo a Data/
+  text_column: "text"
+  label_column: "label"
+  drop_na: true                    # [FIEL] dropna(subset=["text","label"])
+  drop_duplicates: true            # [MELHORIA] remove 1.298 duplicatas exatas
+  # Fração do dataset usada (1.0 = tudo). Os originais large/mbert usaram 0.5/0.3;
+  # aqui o padrão é o dataset completo. Use os configs específicos para reproduzir
+  # o subset original exato.
+  sample_frac: 1.0
+
+# --- Split treino / validação / teste ---------------------------------------
+split:
+  strategy: "train_val_test"   # ou "train_test" para reproduzir o original
+  test_size: 0.10
+  val_size: 0.10               # fração do TOTAL (não do treino)
+  stratify: true               # [FIEL] stratify=label
+  random_state: 42             # [FIEL]
+  # Split por documento: garante que fragmentos do mesmo processo judicial
+  # vão para o mesmo conjunto — evita data leakage por fragmentação.
+  # False = split aleatório (apenas para comparação ou reprodução dos originais).
+  group_by_document: true
+
+# --- Anonimização (LGPD) ----------------------------------------------------
+# [MELHORIA] Os originais treinaram com texto cru. Decisão do usuário: anonimizar
+# todos os conjuntos antes do treino.
+anonymization:
+  enabled: true
+  entities: [cpf, cnpj, email, phone, cep, oab, money, url, processo]
+  mask_names: false            # nomes de pessoas via NER (requer spaCy PT); off por padrão
+  spacy_model: "pt_core_news_lg"
+  placeholders:
+    cpf: "[CPF]"
+    cnpj: "[CNPJ]"
+    email: "[EMAIL]"
+    phone: "[TELEFONE]"
+    cep: "[CEP]"
+    oab: "[OAB]"
+    money: "[VALOR]"
+    url: "[URL]"
+    processo: "[PROCESSO]"
+    person: "[PESSOA]"
+
+# --- Pré-processamento textual ----------------------------------------------
+preprocess:
+  # [FIEL] Os originais só faziam str(t). Mantido como padrão.
+  to_string: true
+  strip: true
+  lowercase: false             # modelos "cased" — não rebaixar caixa
+  normalize_whitespace: true
+  strategy: "none"             # "none" (fiel) | "legacy_normalizer" (melhoria opcional)
+
+# --- Tokenização ------------------------------------------------------------
+tokenization:
+  max_length: 512              # [FIEL]
+  truncation: true             # [FIEL] truncação simples
+  padding: "dynamic"           # DataCollatorWithPadding (como nos originais)
+  long_text_strategy: "truncate"   # "truncate" (fiel) | "sliding_window" (melhoria)
+  sliding_window:
+    stride: 128
+    aggregation: "mean"        # mean | max | vote — agrega logits/probas das janelas
+
+# --- Treino (TrainingArguments) ---------------------------------------------
+train:
+  num_train_epochs: 10         # [FIEL] (training(1) usava 4)
+  # Tamanho de batch de TREINO: é um hiperparâmetro — mantemos o original por
+  # fidelidade. Cada config específico define o seu (32 nos RoBERTa, 8 nos large).
+  per_device_train_batch_size: 16
+  gradient_accumulation_steps: 1
+  learning_rate: 2.0e-5        # [FIEL]
+  weight_decay: 0.01           # [FIEL]
+  optimizer: "adamw_torch"     # AdamW (padrão HF dos originais)
+  lr_scheduler_type: "linear"  # padrão do Trainer
+  warmup_ratio: 0.0            # originais não definiam warmup
+  eval_strategy: "epoch"       # [FIEL]
+  save_strategy: "epoch"       # [FIEL]
+  save_total_limit: 2          # [FIEL]
+  logging_steps: 50
+  load_best_model_at_end: true # [FIEL]
+  metric_for_best_model: "f1_macro"   # [MELHORIA] originais usavam "accuracy"; ver nota em DECISOES.md
+  greater_is_better: true
+
+  # --- Otimizações de THROUGHPUT (auto-detectam a GPU; NÃO mudam a dinâmica
+  #     de treino, só aceleram). Decisão do usuário: aproveitar a GPU ao máximo.
+  precision: "auto"            # auto: bf16+tf32 em A100/H100; fp16 em GPUs antigas (T4)
+  # eval não tem gradientes → pode usar batch maior, mas com TETO p/ evitar OOM.
+  per_device_eval_batch_size: null     # null = min(train_batch * mult, cap)
+  eval_batch_multiplier: 4
+  eval_batch_cap: 128                  # teto de segurança (evita OOM na validação)
+  dataloader_num_workers: "auto"       # auto = nº de vCPUs disponíveis (limitado)
+  dataloader_pin_memory: true
+  group_by_length: true        # agrupa textos de tamanho similar → menos padding (grande ganho aqui)
+  tf32: true                   # matmuls TF32 em Ampere+ (ganho grátis de velocidade)
+  torch_compile: false         # pode acelerar, mas tem overhead de compilação; opt-in
+  gradient_checkpointing: false
+
+  # --- Técnicas avançadas de treino (opt-in) ----------------------------------
+  advanced:
+    # Focal Loss: foca gradiente nos exemplos difíceis → melhora classes minoritárias.
+    # gamma=2.0 é o padrão original (Lin et al., 2017). NÃO ativar junto com class_weights.
+    focal_loss: false
+    focal_gamma: 2.0
+    # Class Weights: pesos inversamente proporcionais à freq. de cada classe (sklearn balanced).
+    # Alternativa mais simples ao Focal Loss. Pouco efeito em dataset balanceado, mas
+    # serve de ablation para o paper.
+    class_weights: false
+
+  # Differential Learning Rates (layer-wise decay): camadas mais profundas usam LR
+  # menor (preservam features gerais pré-treinadas); camadas de classificação usam LR
+  # base completo. Típico: decay=0.9-0.95.
+  differential_lr:
+    enabled: false
+    decay: 0.95
+  early_stopping:
+    enabled: true              # [FIEL] EarlyStoppingCallback
+    patience: 2                # [FIEL] early_stopping_patience=2
+    threshold: 0.0
+  resume_from_checkpoint: true # [MELHORIA] retomar se a sessão do Colab cair
+
+# --- Avaliação / Métricas ---------------------------------------------------
+# Lista derivada da planilha Métricas_Avaliação_Modelos.xlsx + métricas clássicas.
+metrics:
+  primary: "f1_macro"
+  compute_probabilistic: true  # ROC-AUC, PR-AUC, log loss, Brier (exigem probas)
+  store_per_epoch: true
+
+# --- Visualização -----------------------------------------------------------
+viz:
+  languages: ["pt", "en"]      # gera gráficos em PT-BR e EN
+  dpi: 150
+  format: "png"
+
+# --- Modelo (sobrescrito em cada config específico) -------------------------
+model:
+  name: null                   # ex.: "neuralmind/bert-base-portuguese-cased"
+  family: "encoder"            # encoder | longformer
+  tokenizer_name: null         # default = model.name
+  is_reproduction: true        # true = reproduz original | false = modelo novo

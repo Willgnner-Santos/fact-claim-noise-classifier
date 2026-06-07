@@ -1,0 +1,48 @@
+# =============================================================================
+# Fato / Tese / Ruído — dependências
+# =============================================================================
+# As versões abaixo espelham o ambiente dos notebooks originais (transformers
+# 4.48.3, datasets 3.3.0, scikit-learn 1.6.1, pandas 2.2.3, numpy 2.2.3) para
+# máxima fidelidade de reprodução. No Google Colab, instale com:
+#
+#     pip install -r requirements.txt
+#
+# Observações:
+# * torch NÃO é fixado aqui: no Colab já vem com a build CUDA correta. Localmente,
+#   instale conforme sua GPU (https://pytorch.org/get-started/locally/).
+# * Para anonimização por NER (nomes de pessoas) o spaCy + modelo PT são
+#   opcionais; o fallback por regras funciona sem eles.
+# -----------------------------------------------------------------------------
+
+# Núcleo de dados / ciência de dados
+numpy==2.2.3
+pandas==2.2.3
+scikit-learn==1.6.1
+scipy>=1.13
+
+# Transformers / treino (fixados conforme os notebooks originais)
+transformers==4.48.3
+datasets==3.3.0
+evaluate>=0.4.3
+tokenizers>=0.21
+accelerate>=1.3.0
+sentencepiece>=0.2.0          # exigido por XLM-R / mDeBERTa / BERTimbau
+protobuf>=4.25                # exigido por alguns tokenizers SentencePiece
+
+# torch: instale separadamente (ver nota acima). Mínimo recomendado:
+# torch>=2.2
+
+# Visualização
+matplotlib>=3.8
+seaborn>=0.13
+
+# Utilidades
+PyYAML>=6.0
+tqdm>=4.66
+openpyxl>=3.1                 # leitura/escrita de .xlsx (planilha de métricas, tabelas)
+psutil>=5.9                   # info de hardware no env.json
+pyarrow>=15.0                 # engine Parquet p/ splits (evita fallback; preserva texto)
+
+# Anonimização (opcional — fallback por regex funciona sem isto)
+# spacy>=3.7,<4.0
+# https://github.com/explosion/spacy-models/releases/download/pt_core_news_lg-3.7.0/pt_core_news_lg-3.7.0-py3-none-any.whl

@@ -1,0 +1,12 @@
+experiment_id: "svm_rbf"
+description: "SVM RBF — kernel não-linear"
+model:
+  name: "SVC"
+  family: "svm"
+  requires_proba: true
+  params:
+    C: 10.0
+    kernel: "rbf"
+    gamma: "scale"
+    probability: true
+    random_state: 42

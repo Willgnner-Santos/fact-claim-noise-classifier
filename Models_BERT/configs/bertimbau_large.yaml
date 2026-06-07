@@ -1,0 +1,28 @@
+# =============================================================================
+# BERTimbau Large — REPRODUÇÃO FIEL (notebook neuralmindbert-large-...ipynb)
+# =============================================================================
+# Original: acc ~0.9866. O notebook original usou apenas 50% do dataset
+# (sample_frac=0.5) e batch 8. Aqui o PADRÃO é o dataset COMPLETO; para reproduzir
+# exatamente o subset original, altere sample_frac para 0.5.
+experiment_id: "bertimbau_large"
+description: "BERTimbau Large (neuralmind/bert-large-portuguese-cased) — reprodução fiel"
+
+model:
+  name: "neuralmind/bert-large-portuguese-cased"
+  family: "encoder"
+  is_reproduction: true
+
+data:
+  sample_frac: 1.0                   # original usava 0.5 (50%); ver nota acima
+
+train:
+  # [MELHORIA — uso pleno de GPU] modelo grande (~335M). Batch 8 -> 48 (cabe folgado
+  # em A100/H100 40-80GB com bf16). LR re-escalado 2e-5 -> 4.9e-5 (raiz de 48/8) + warmup.
+  # Reprodução estrita: bs=8, lr=2e-5, warmup_ratio=0.0.
+  per_device_train_batch_size: 48
+  num_train_epochs: 10               # [FIEL]
+  learning_rate: 4.9e-5
+  warmup_ratio: 0.06
+  gradient_checkpointing: false      # não precisa em A100/H100; ative se faltar memória
+  # Original NÃO ativou early stopping (importado mas inativo). Mantemos ativo
+  # como melhoria — para reprodução estrita, defina early_stopping.enabled=false.

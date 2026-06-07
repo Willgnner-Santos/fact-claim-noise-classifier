@@ -1,0 +1,11 @@
+experiment_id: "logistic_regression"
+description: "Regressão Logística (baseline forte — referência do paper)"
+model:
+  name: "LogisticRegression"
+  family: "linear"
+  requires_proba: true
+  params:
+    C: 1.0
+    max_iter: 1000
+    solver: "lbfgs"
+    random_state: 42

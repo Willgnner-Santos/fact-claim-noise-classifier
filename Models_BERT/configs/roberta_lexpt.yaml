@@ -1,0 +1,24 @@
+# =============================================================================
+# RoBERTaLexPT-base — REPRODUÇÃO FIEL (notebook RoBERTaLexPT-base.ipynb)
+# =============================================================================
+# Original: acc ~0.9909. RoBERTa pré-treinado em corpus jurídico PT (eduagarcia).
+experiment_id: "roberta_lexpt"
+description: "RoBERTa jurídico PT (eduagarcia/RoBERTaLexPT-base) — reprodução fiel"
+
+model:
+  name: "eduagarcia/RoBERTaLexPT-base"
+  family: "encoder"
+  is_reproduction: true
+
+train:
+  # [MELHORIA — uso pleno de GPU A100/H100] batch original era 32. Aumentado para
+  # 128 com LR re-escalado (regra raiz: 2e-5 * sqrt(128/32) = 4e-5) + warmup 6%
+  # para convergência estável com batch grande. Para reprodução estrita: bs=32, lr=2e-5.
+  per_device_train_batch_size: 128
+  num_train_epochs: 10               # [FIEL]
+  learning_rate: 4.0e-5
+  warmup_ratio: 0.06
+  # Original fiel (descomente p/ reproduzir exatamente):
+  # per_device_train_batch_size: 32
+  # learning_rate: 2.0e-5
+  # warmup_ratio: 0.0

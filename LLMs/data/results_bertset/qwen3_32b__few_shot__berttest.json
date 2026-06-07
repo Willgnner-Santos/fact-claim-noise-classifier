@@ -1,0 +1,58 @@
+{
+  "model": "qwen3_32b",
+  "strategy": "few_shot",
+  "test_set": "bert_canonical",
+  "n_total": 2559,
+  "n_reused": 0,
+  "n_failed_or_unpredicted": 1,
+  "parse_failure_rate": 0.0004,
+  "api_cost_usd_new_calls": 3.5251,
+  "n_evaluated": 2558,
+  "accuracy": 0.8034,
+  "f1_macro": 0.8044,
+  "f1_tese": 0.7761,
+  "f1_fato": 0.8461,
+  "f1_ruido": 0.7909,
+  "per_class": {
+    "tese": {
+      "precision": 0.6592,
+      "recall": 0.9435,
+      "f1": 0.7761,
+      "support": 814
+    },
+    "fato": {
+      "precision": 0.8834,
+      "recall": 0.8119,
+      "f1": 0.8461,
+      "support": 877
+    },
+    "ruido": {
+      "precision": 0.9796,
+      "recall": 0.6632,
+      "f1": 0.7909,
+      "support": 867
+    }
+  },
+  "confusion_matrix": [
+    [
+      768,
+      40,
+      6
+    ],
+    [
+      159,
+      712,
+      6
+    ],
+    [
+      238,
+      54,
+      575
+    ]
+  ],
+  "labels": [
+    "tese",
+    "fato",
+    "ruido"
+  ]
+}

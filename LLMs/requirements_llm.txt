@@ -1,0 +1,21 @@
+# Dependências do pipeline LLM
+# Instalar com: pip install -r requirements_llm.txt
+
+# AWS
+boto3>=1.34.0
+
+# ML / Métricas (reutilizadas de src/ftr)
+scikit-learn>=1.3.0
+numpy>=1.24.0
+
+# Configuração
+pyyaml>=6.0
+
+# Gráficos
+matplotlib>=3.7.0
+
+# Utilitários
+python-dotenv>=1.0.0
+
+# Já disponíveis via src/ftr (não reinstalar):
+# pandas, tqdm

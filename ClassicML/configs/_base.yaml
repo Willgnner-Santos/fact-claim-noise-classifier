@@ -1,0 +1,74 @@
+# =============================================================================
+# Configuração BASE — ClassicML (IA Clássica)
+# =============================================================================
+# Herdada por todos os configs de modelo. Usa a mesma planilha de métricas
+# do pipeline Transformer (Métricas_Avaliação_Modelos.xlsx).
+#
+# Diferenças em relação ao pipeline BERT:
+# - K-Fold estratificado (padrão científico para modelos clássicos)
+# - Sem GPU obrigatória — tudo roda em CPU
+# - Vetorização TF-IDF (configurável)
+# - Sem tokenização neural
+
+project_name: "Fato_Tese_Ruido_ClassicML"
+
+# Rótulos canônicos (idênticos ao pipeline BERT)
+labels:
+  id2label: {0: "tese", 1: "fato", 2: "ruido"}
+  num_labels: 3
+
+seed: 42
+
+# --- Dados ------------------------------------------------------------------
+data:
+  # Usa os splits já gerados pelo pipeline BERT (group_by_document=True)
+  # para comparação justa. Se não existirem, gera do raw com o mesmo split.
+  use_bert_splits: true
+  processed_dir: "../Models_BERT/data/processed"   # splits gerados pelo pipeline BERT
+  raw_file: "../Models_BERT/Data/dataset_FINAL.json"
+  text_column: "text"
+  label_column: "label"
+
+# --- K-Fold -----------------------------------------------------------------
+# Padrão científico para modelos clássicos. K=5 é o mais citado.
+# Usa StratifiedKFold para garantir balanceamento por classe.
+cv:
+  strategy: "stratified_kfold"   # stratified_kfold | leave_one_out | hold_out
+  n_splits: 5
+  shuffle: true
+  random_state: 42
+  # Se true, avalia também no conjunto de teste fixo (hold-out final)
+  # para comparação direta com os modelos BERT.
+  final_test_eval: true
+
+# --- Vetorização TF-IDF -----------------------------------------------------
+# Feature extraction para todos os modelos clássicos.
+vectorizer:
+  type: "tfidf"                  # tfidf | count | hashing
+  max_features: 50000
+  ngram_range: [1, 2]            # unigramas + bigramas
+  sublinear_tf: true
+  min_df: 2
+  strip_accents: null            # null = preserva acentos (textos jurídicos PT)
+  analyzer: "word"
+
+# --- Métricas (todas da planilha Métricas_Avaliação_Modelos.xlsx) -----------
+metrics:
+  primary: "f1_macro"
+  compute_probabilistic: true    # ROC-AUC, PR-AUC, Log Loss, Brier (exigem predict_proba)
+  report_per_class: true
+  report_confusion_matrix: true
+
+# --- Visualizações -----------------------------------------------------------
+viz:
+  languages: ["pt", "en"]
+  dpi: 150
+  format: "png"
+  save_figures: true
+
+# --- Modelo (sobrescrito em cada config) ------------------------------------
+model:
+  name: null
+  family: "classic"
+  requires_proba: true           # se false, métricas probabilísticas não são calculadas
+  params: {}                     # hiperparâmetros passados ao construtor sklearn

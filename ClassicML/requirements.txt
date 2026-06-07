@@ -1,0 +1,24 @@
+# ClassicML — dependências
+# pip install -r requirements.txt
+
+# Core
+numpy>=1.24
+pandas>=2.0
+scikit-learn>=1.3
+scipy>=1.11
+
+# Boosting (recomendado — GPU opcional no XGBoost)
+xgboost>=2.0
+lightgbm>=4.0
+
+# Visualização
+matplotlib>=3.7
+seaborn>=0.13
+openpyxl>=3.1      # exportar .xlsx
+
+# Utilitários
+pyyaml>=6.0
+tqdm>=4.66
+
+# Já presentes via src/ftr (anonimização + pré-processamento):
+# pyarrow, pandas, scikit-learn — não reinstalar separadamente

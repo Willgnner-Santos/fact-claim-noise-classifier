@@ -1,0 +1,58 @@
+{
+  "model": "deepseek_v32",
+  "strategy": "evidence_constrained",
+  "test_set": "bert_canonical",
+  "n_total": 2559,
+  "n_reused": 0,
+  "n_failed_or_unpredicted": 7,
+  "parse_failure_rate": 0.0027,
+  "api_cost_usd_new_calls": 2.532,
+  "n_evaluated": 2552,
+  "accuracy": 0.6638,
+  "f1_macro": 0.6498,
+  "f1_tese": 0.6542,
+  "f1_fato": 0.8208,
+  "f1_ruido": 0.4745,
+  "per_class": {
+    "tese": {
+      "precision": 0.4934,
+      "recall": 0.9704,
+      "f1": 0.6542,
+      "support": 812
+    },
+    "fato": {
+      "precision": 0.9518,
+      "recall": 0.7215,
+      "f1": 0.8208,
+      "support": 876
+    },
+    "ruido": {
+      "precision": 0.9416,
+      "recall": 0.3171,
+      "f1": 0.4745,
+      "support": 864
+    }
+  },
+  "confusion_matrix": [
+    [
+      788,
+      15,
+      9
+    ],
+    [
+      236,
+      632,
+      8
+    ],
+    [
+      573,
+      17,
+      274
+    ]
+  ],
+  "labels": [
+    "tese",
+    "fato",
+    "ruido"
+  ]
+}

@@ -1,0 +1,21 @@
+# =============================================================================
+# mDeBERTa-v3 base — MODELO NOVO (melhoria)
+# =============================================================================
+# microsoft/mdeberta-v3-base (~280M). Estava comentado no notebook training(1).ipynb.
+# Justificativa: arquitetura DeBERTa-v3 (disentangled attention + ELECTRA-style
+# pretraining) costuma superar BERT/RoBERTa em classificação; versão multilingual
+# cobre PT. Requer sentencepiece. LR levemente menor é recomendado para DeBERTa-v3.
+experiment_id: "mdeberta_v3"
+description: "mDeBERTa-v3 base (microsoft/mdeberta-v3-base) — modelo novo"
+
+model:
+  name: "microsoft/mdeberta-v3-base"
+  family: "encoder"
+  is_reproduction: false
+
+train:
+  # Modelo novo — batch generoso. mDeBERTa-v3 é mais sensível: LR menor mantido.
+  per_device_train_batch_size: 96
+  num_train_epochs: 10
+  learning_rate: 2.0e-5              # DeBERTa-v3 prefere LR menor (escalado de 1e-5)
+  warmup_ratio: 0.1

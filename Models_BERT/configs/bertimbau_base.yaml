@@ -1,0 +1,21 @@
+# =============================================================================
+# BERTimbau Base — MODELO NOVO (melhoria)
+# =============================================================================
+# Baseline forte e rápido para PT. BERTimbau é referência para português; a versão
+# base (~110M) treina muito mais rápido que a large e costuma render quase tão bem.
+# Justificativa: estado da arte consolidado para PT, baixo custo, ótima comparação
+# com RoBERTaLexPT/CrawlPT (também encoders PT).
+experiment_id: "bertimbau_base"
+description: "BERTimbau Base (neuralmind/bert-base-portuguese-cased) — modelo novo"
+
+model:
+  name: "neuralmind/bert-base-portuguese-cased"
+  family: "encoder"
+  is_reproduction: false
+
+train:
+  # Modelo novo — batch generoso para uso pleno de GPU A100/H100.
+  per_device_train_batch_size: 128
+  num_train_epochs: 10
+  learning_rate: 4.0e-5
+  warmup_ratio: 0.06

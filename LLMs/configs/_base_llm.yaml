@@ -1,0 +1,55 @@
+# =============================================================================
+# Config BASE — LLM experiments (herdado por todos os modelos)
+# =============================================================================
+
+seed: 42
+
+data:
+  raw_file: "E:/Anonymous/Fato_Tese_Ruido/Models_BERT/Data/dataset_FINAL.json"
+  processed_file: "E:/Anonymous/Fato_Tese_Ruido/LLMs/data/splits"
+  bedrock_registry: "E:/Anonymous/Fato_Tese_Ruido/LLMs/bedrock_modelos_refatorado.json"
+
+split:
+  test_size: 0.10
+  val_size: 0.10
+  stratify: true
+  random_state: 42
+
+anonymization:
+  enabled: true
+  entities: [cpf, cnpj, email, phone, cep, oab, money, url, processo]
+  mask_names: false
+
+preprocess:
+  to_string: true
+  strip: true
+  lowercase: false
+  normalize_whitespace: true
+  strategy: "none"
+
+experiment:
+  # Split principal de avaliação
+  eval_split: "test"
+  # Estratégias a rodar (subset para economizar custo)
+  strategies: ["zero_shot", "few_shot", "evidence_constrained", "decomposed"]
+  # Temperatura: 0 = determinístico
+  temperature: 0.0
+  max_tokens: 1024
+  # Delay entre chamadas (segundos) — respeita rate limits
+  delay_between_calls: 0.5
+  # Smoke test antes de iniciar
+  smoke_test: true
+  # Chamadas concorrentes por modelo (asyncio.Semaphore).
+  # 5 é conservador e seguro para todos os provedores testados.
+  # Reduza para 2-3 se aparecerem ThrottlingException.
+  # Para --sample-n pequenos, o código limita automaticamente a min(concurrency, n//3).
+  concurrency: 5
+
+output:
+  ckpt_dir: "E:/Anonymous/Fato_Tese_Ruido/LLMs/data/checkpoints"
+  results_dir: "E:/Anonymous/Fato_Tese_Ruido/LLMs/data/results"
+  reports_dir: "E:/Anonymous/Fato_Tese_Ruido/LLMs/data/reports"
+  dpi: 150
+
+# Fallback: modelo usado se o primário falhar após todos os retries
+fallback_model_alias: "claude_3_haiku"

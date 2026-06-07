@@ -1,0 +1,14 @@
+# Sabiá-4 (Maritaca) — tier: maritaca
+_base: "_base_llm.yaml"
+
+model:
+  alias: "sabia-4"
+  display_name: "Sabiá-4 (Maritaca)"
+  tier: "maritaca"
+  provider: "Maritaca"
+
+experiment:
+  # Modelos caros (elite/top): só no test set, 1 estratégia principal
+  # Modelos baratos (leve/bom): todas as estratégias no dev e test
+  strategies: ["zero_shot", "few_shot", "evidence_constrained", "decomposed"]
+  delay_between_calls: 0.5

@@ -1,0 +1,58 @@
+{
+  "model": "sabia4",
+  "strategy": "evidence_constrained",
+  "test_set": "bert_canonical",
+  "n_total": 2559,
+  "n_reused": 0,
+  "n_failed_or_unpredicted": 5,
+  "parse_failure_rate": 0.002,
+  "api_cost_usd_new_calls": 4.4998,
+  "n_evaluated": 2554,
+  "accuracy": 0.6625,
+  "f1_macro": 0.6303,
+  "f1_tese": 0.6561,
+  "f1_fato": 0.861,
+  "f1_ruido": 0.374,
+  "per_class": {
+    "tese": {
+      "precision": 0.4972,
+      "recall": 0.9644,
+      "f1": 0.6561,
+      "support": 814
+    },
+    "fato": {
+      "precision": 0.9217,
+      "recall": 0.8078,
+      "f1": 0.861,
+      "support": 874
+    },
+    "ruido": {
+      "precision": 0.9617,
+      "recall": 0.2321,
+      "f1": 0.374,
+      "support": 866
+    }
+  },
+  "confusion_matrix": [
+    [
+      785,
+      25,
+      4
+    ],
+    [
+      164,
+      706,
+      4
+    ],
+    [
+      630,
+      35,
+      201
+    ]
+  ],
+  "labels": [
+    "tese",
+    "fato",
+    "ruido"
+  ]
+}
