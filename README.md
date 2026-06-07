@@ -14,8 +14,9 @@ and **ruído** (noise/irrelevant content).
 
 ## Best model — ready to use
 
-The best fine-tuned model (BERTimbau-large, F1-macro 0.9901) is available on
-HuggingFace:
+**Model on HuggingFace:** https://huggingface.co/AnonymousModelsRevision/ftr-bertimbau-large
+
+The best fine-tuned model (BERTimbau-large, F1-macro 0.9901). Load and run inference in seconds:
 
 ```python
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
