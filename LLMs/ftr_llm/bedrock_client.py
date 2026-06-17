@@ -1,7 +1,7 @@
 """
 Bedrock client with retry, fallback and cost logging.
 
-Uses the Converse API (supports all models from bedrock_modelos_refatorado.json).
+Uses the Converse API (supports all configured Bedrock models).
 Includes:
   - Exponential retry with jitter
   - Fallback to backup model if the primary fails

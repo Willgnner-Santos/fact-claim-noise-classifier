@@ -38,7 +38,6 @@ LLMs/
 │   ├── checkpoints/            # JSONL per model x strategy
 │   ├── results/                # JSON + CSV metrics
 │   └── reports/                # Plots (PT and EN)
-├── bedrock_modelos_refatorado.json
 ├── .env
 └── requirements_llm.txt
 ```

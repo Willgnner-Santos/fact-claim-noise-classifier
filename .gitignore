@@ -44,6 +44,7 @@ venv/
 # ── Logs and temp files ────────────────────────────────────────────────────────
 *.log
 LLMs/data/reeval_run.log
+LLMs/bedrock_modelos_refatorado.json
 
 # ── OS / IDE ──────────────────────────────────────────────────────────────────
 .DS_Store

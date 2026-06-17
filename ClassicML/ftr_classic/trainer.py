@@ -237,7 +237,7 @@ def run_experiment(
             pd.DataFrame([flatten_metrics(test_metrics)]).to_csv(
                 exp_dir / "metrics" / "test_metrics_flat.csv", index=False
             )
-            lg.info("Teste — f1_macro=%.4f  acc=%.4f  mcc=%.4f",
+            lg.info("Test — f1_macro=%.4f  acc=%.4f  mcc=%.4f",
                     test_metrics["f1_macro"], test_metrics["accuracy"], test_metrics["mcc"])
 
             # Test figures

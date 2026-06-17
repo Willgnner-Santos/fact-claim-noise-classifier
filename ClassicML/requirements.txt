@@ -1,4 +1,4 @@
-# ClassicML — dependências
+# ClassicML — dependencies
 # pip install -r requirements.txt
 
 # Core
@@ -7,18 +7,18 @@ pandas>=2.0
 scikit-learn>=1.3
 scipy>=1.11
 
-# Boosting (recomendado — GPU opcional no XGBoost)
+# Boosting (recommended — GPU optional for XGBoost)
 xgboost>=2.0
 lightgbm>=4.0
 
-# Visualização
+# Visualisation
 matplotlib>=3.7
 seaborn>=0.13
-openpyxl>=3.1      # exportar .xlsx
+openpyxl>=3.1      # export .xlsx
 
-# Utilitários
+# Utilities
 pyyaml>=6.0
 tqdm>=4.66
 
-# Já presentes via src/ftr (anonimização + pré-processamento):
-# pyarrow, pandas, scikit-learn — não reinstalar separadamente
+# Already present via src/ftr (anonymisation + preprocessing):
+# pyarrow, pandas, scikit-learn — do not reinstall separately

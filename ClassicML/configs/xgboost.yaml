@@ -1,5 +1,5 @@
 experiment_id: "xgboost"
-description: "XGBoost — state-of-the-art em dados esparsos/TF-IDF"
+description: "XGBoost — state-of-the-art on sparse/TF-IDF data"
 model:
   name: "XGBClassifier"
   family: "boosting"

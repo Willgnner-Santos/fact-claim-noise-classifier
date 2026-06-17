@@ -7,7 +7,6 @@ seed: 42
 data:
   raw_file: "E:/Anonymous/Fato_Tese_Ruido/Models_BERT/Data/dataset_FINAL.json"
   processed_file: "E:/Anonymous/Fato_Tese_Ruido/LLMs/data/splits"
-  bedrock_registry: "E:/Anonymous/Fato_Tese_Ruido/LLMs/bedrock_modelos_refatorado.json"
 
 split:
   test_size: 0.10
