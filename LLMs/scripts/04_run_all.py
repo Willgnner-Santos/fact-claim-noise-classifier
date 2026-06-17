@@ -1,35 +1,35 @@
 """
-04_run_all.py — Orquestrador completo: todos os modelos × todas as estratégias.
+04_run_all.py — Full orchestrator: all models x all strategies.
 
-Roda os experimentos em sequência, modelo a modelo, estratégia a estratégia.
-Se cair no meio (Ctrl+C, queda de rede, timeout), basta rodar novamente:
-  - Modelos já concluídos são pulados automaticamente (--skip-done)
-  - Dentro de cada modelo, checkpoints por linha garantem retomada do índice exato
+Runs experiments in sequence, model by model, strategy by strategy.
+If it stops mid-run (Ctrl+C, network drop, timeout), just run again:
+  - Already-completed models are skipped automatically (--skip-done)
+  - Within each model, per-line checkpoints guarantee resumption at the exact index
 
-Ordem de execução (custo crescente):
-  1. claude_3_haiku       — leve, barato, valida tudo primeiro
-  2. gemma_3_27b          — médio, sem custo Claude
-  3. magistral_small_2509 — médio Mistral
-  4. qwen3_32b            — médio Qwen
-  5. deepseek_v32         — grande, custo baixo
-  6. mistral_large_3      — grande Mistral
-  7. sabia4               — Maritaca (API separada)
-  8. claude_sonnet_46     — elite, mais caro — deixa por último
+Execution order (ascending cost):
+  1. claude_3_haiku       — light, cheap, validates everything first
+  2. gemma_3_27b          — medium, no Claude cost
+  3. magistral_small_2509 — medium Mistral
+  4. qwen3_32b            — medium Qwen
+  5. deepseek_v32         — large, low cost
+  6. mistral_large_3      — large Mistral
+  7. sabia4               — Maritaca (separate API)
+  8. claude_sonnet_46     — elite, most expensive — saved for last
 
-Uso:
-  # Roda tudo no val set (desenvolvimento)
+Usage:
+  # Run everything on the val set (development)
   python scripts/04_run_all.py --split val
 
-  # Avaliação final no test set
+  # Final evaluation on the test set
   python scripts/04_run_all.py --split test
 
-  # Só alguns modelos
+  # Only some models
   python scripts/04_run_all.py --models claude_3_haiku gemma_3_27b --split val
 
-  # Retoma de onde parou (padrão — checkpoints automáticos)
+  # Resume from where it stopped (default — automatic checkpoints)
   python scripts/04_run_all.py --split val
 
-  # Pula modelos cujo resultado JSON já existe
+  # Skip models whose result JSON already exists
   python scripts/04_run_all.py --split test --skip-done
 """
 
@@ -61,7 +61,7 @@ except ImportError:
 
 from ftr_llm.config import load_config
 
-# Ordem por custo crescente
+# Order by ascending cost
 MODEL_ORDER = [
     "claude_3_haiku",
     "gemma_3_27b",
@@ -77,7 +77,7 @@ ALL_STRATEGIES = ["zero_shot", "few_shot", "evidence_constrained", "decomposed"]
 
 
 def result_exists(results_dir: Path, model: str, strategy: str, split: str) -> bool:
-    """Verifica se o resultado JSON desse experimento já existe e tem F1-Macro."""
+    """Checks whether the JSON result for this experiment already exists and has F1-Macro."""
     p = results_dir / f"{model}__{strategy}__{split}.json"
     if not p.exists():
         return False
@@ -97,7 +97,7 @@ def run_one(
     config: str,
     delay: float,
 ) -> bool:
-    """Chama 02_run_experiment.py como subprocesso. Retorna True se bem-sucedido."""
+    """Calls 02_run_experiment.py as a subprocess. Returns True if successful."""
     cmd = [
         sys.executable,
         str(_ROOT / "scripts" / "02_run_experiment.py"),
@@ -110,26 +110,26 @@ def run_one(
     if no_smoke_test:
         cmd.append("--no-smoke-test")
 
-    logger.info("Iniciando: %s", " ".join(cmd))
+    logger.info("Starting: %s", " ".join(cmd))
     result = subprocess.run(cmd, cwd=str(_ROOT))
     return result.returncode == 0
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Roda todos os experimentos LLM")
+    parser = argparse.ArgumentParser(description="Run all LLM experiments")
     parser.add_argument("--split", default="val", choices=["val", "test"],
-                        help="Split a avaliar (val=desenvolvimento, test=final)")
+                        help="Split to evaluate (val=development, test=final)")
     parser.add_argument("--models", nargs="+", default=None,
-                        help="Subset de modelos (padrão: todos em ordem de custo)")
+                        help="Model subset (default: all in ascending cost order)")
     parser.add_argument("--strategies", nargs="+", default=ALL_STRATEGIES,
                         choices=ALL_STRATEGIES + ["all"])
     parser.add_argument("--config", default=str(_ROOT / "configs" / "_base_llm.yaml"))
     parser.add_argument("--skip-done", action="store_true",
-                        help="Pula experimentos cujo resultado JSON já existe com F1 > 0")
+                        help="Skip experiments whose JSON result already exists with F1 > 0")
     parser.add_argument("--delay", type=float, default=0.5,
-                        help="Delay entre chamadas em segundos (padrão 0.5)")
+                        help="Delay between calls in seconds (default 0.5)")
     parser.add_argument("--no-smoke-test", action="store_true",
-                        help="Pula smoke test em todos os modelos")
+                        help="Skip smoke test for all models")
     args = parser.parse_args()
 
     cfg = load_config(args.config)
@@ -139,45 +139,45 @@ def main():
     models = args.models or MODEL_ORDER
     strategies = ALL_STRATEGIES if "all" in args.strategies else args.strategies
 
-    # Relatório de progresso
+    # Progress report
     total = len(models) * len(strategies)
     done_count = 0
     skipped_count = 0
     failed = []
 
     logger.info("=" * 70)
-    logger.info("PIPELINE COMPLETO")
-    logger.info("  Split:      %s", args.split)
-    logger.info("  Modelos:    %s", models)
-    logger.info("  Estratégias: %s", strategies)
-    logger.info("  Total:      %d experimentos", total)
-    logger.info("  Skip-done:  %s", args.skip_done)
+    logger.info("FULL PIPELINE")
+    logger.info("  Split:       %s", args.split)
+    logger.info("  Models:      %s", models)
+    logger.info("  Strategies:  %s", strategies)
+    logger.info("  Total:       %d experiments", total)
+    logger.info("  Skip-done:   %s", args.skip_done)
     logger.info("=" * 70)
 
     session_start = time.time()
     first_model = True
 
     for model in models:
-        # Verifica quais estratégias já estão prontas para esse modelo
+        # Check which strategies are already done for this model
         pending_strategies = []
         for strategy in strategies:
             if args.skip_done and result_exists(results_dir, model, strategy, args.split):
-                logger.info("Pulando (já existe): %s × %s", model, strategy)
+                logger.info("Skipping (already exists): %s x %s", model, strategy)
                 skipped_count += 1
                 done_count += 1
             else:
                 pending_strategies.append(strategy)
 
         if not pending_strategies:
-            logger.info("Modelo %s: todas as estratégias já concluídas.", model)
+            logger.info("Model %s: all strategies already completed.", model)
             continue
 
-        # Smoke test só no primeiro modelo (os demais pulam)
+        # Smoke test only for the first model (others skip)
         no_smoke = args.no_smoke_test or not first_model
         first_model = False
 
         logger.info("-" * 60)
-        logger.info("Modelo %s — %d estratégias pendentes: %s",
+        logger.info("Model %s — %d pending strategies: %s",
                     model, len(pending_strategies), pending_strategies)
 
         ok = run_one(
@@ -193,20 +193,20 @@ def main():
             done_count += len(pending_strategies)
             elapsed = time.time() - session_start
             logger.info(
-                "Progresso: %d/%d concluídos — tempo total: %.0fs",
+                "Progress: %d/%d completed — total time: %.0fs",
                 done_count, total, elapsed,
             )
         else:
             failed.append(model)
             logger.error(
-                "Modelo %s falhou. Continuando com o próximo...", model
+                "Model %s failed. Continuing with the next one...", model
             )
-            # Pausa antes do próximo modelo em caso de falha (rate limit, etc.)
+            # Pause before the next model in case of failure (rate limit, etc.)
             time.sleep(10)
 
-    # Consolidação final
+    # Final consolidation
     logger.info("=" * 70)
-    logger.info("Todos os modelos processados. Gerando consolidação final...")
+    logger.info("All models processed. Generating final consolidation...")
 
     consolidate_cmd = [
         sys.executable,
@@ -215,19 +215,19 @@ def main():
     ]
     subprocess.run(consolidate_cmd, cwd=str(_ROOT))
 
-    # Resumo final
+    # Final summary
     elapsed_total = time.time() - session_start
     logger.info("=" * 70)
-    logger.info("CONCLUÍDO")
-    logger.info("  Tempo total:    %.0f min", elapsed_total / 60)
-    logger.info("  Experimentos:   %d/%d", done_count, total)
-    logger.info("  Pulados:        %d", skipped_count)
+    logger.info("DONE")
+    logger.info("  Total time:     %.0f min", elapsed_total / 60)
+    logger.info("  Experiments:    %d/%d", done_count, total)
+    logger.info("  Skipped:        %d", skipped_count)
     if failed:
-        logger.warning("  Modelos com falha: %s", failed)
-        logger.warning("  Para retentar: python scripts/04_run_all.py --split %s --models %s",
+        logger.warning("  Models with failure: %s", failed)
+        logger.warning("  To retry: python scripts/04_run_all.py --split %s --models %s",
                        args.split, " ".join(failed))
-    logger.info("  Resultados:   %s", results_dir)
-    logger.info("  Gráficos:     %s", reports_dir)
+    logger.info("  Results:      %s", results_dir)
+    logger.info("  Plots:        %s", reports_dir)
     logger.info("=" * 70)
 
 

@@ -1,25 +1,25 @@
 """
-04_reeval_on_bert_test.py — Re-avalia os LLMs sobre o MESMO conjunto de teste
-usado pelos modelos BERT/ClassicML, para uma comparação justa entre famílias.
+04_reeval_on_bert_test.py — Re-evaluates LLMs on the SAME test set used by
+BERT/ClassicML models, for a fair comparison across model families.
 
-Por quê:
-  Os pipelines BERT e LLM geraram splits diferentes (dedup + group_by_document
-  no BERT; split estratificado simples no LLM). Os conjuntos de teste só tinham
-  ~10% de sobreposição. Esta rotina fixa o test do BERT como base canônica.
+Why:
+  The BERT and LLM pipelines generated different splits (dedup + group_by_document
+  in BERT; simple stratified split in LLM). The test sets had only ~10% overlap.
+  This routine fixes the BERT test as the canonical baseline.
 
-O que faz:
-  1. Carrega o test set canônico (Models_BERT/Data/processed/test.jsonl):
-     2.559 trechos, deduplicados, anonimizados, com label_text.
-  2. Reaproveita predições já existentes nos checkpoints antigos do pipeline LLM
-     (data/checkpoints/*.jsonl), casando por TEXTO normalizado — zero custo.
-  3. Chama a API só para os textos ainda sem predição.
-  4. Checkpoint próprio em data/checkpoints_bertset/ (não toca nos antigos).
-  5. Salva métricas por modelo×estratégia em data/results_bertset/.
+What it does:
+  1. Loads the canonical test set (Models_BERT/Data/processed/test.jsonl):
+     2,559 excerpts, deduplicated, anonymized, with label_text.
+  2. Reuses existing predictions from old LLM pipeline checkpoints
+     (data/checkpoints/*.jsonl), matched by normalised TEXT — zero cost.
+  3. Calls the API only for texts still without a prediction.
+  4. Own checkpoint in data/checkpoints_bertset/ (does not touch the old ones).
+  5. Saves metrics per model x strategy in data/results_bertset/.
 
-Métricas calculadas comparando STRINGS (pred_text vs label_text), evitando
-qualquer ambiguidade de mapeamento de inteiros.
+Metrics computed by comparing STRINGS (pred_text vs label_text), avoiding
+any integer-mapping ambiguity.
 
-Uso:
+Usage:
   python scripts/04_reeval_on_bert_test.py --models all --strategies all
   python scripts/04_reeval_on_bert_test.py --models gemma_3_27b --strategies zero_shot
 """
@@ -97,11 +97,11 @@ def load_bert_test() -> list[dict]:
 
 def build_prior_predictions() -> dict[tuple[str, str, str], str]:
     """
-    Varre os checkpoints antigos e devolve um mapa:
+    Scans old checkpoints and returns a map:
        (model, strategy, text_key) -> pred_text
-    Casa o idx do checkpoint com o texto via os splits antigos.
+    Matches the checkpoint idx with the text via the old splits.
     """
-    # idx -> text_key, por split antigo
+    # idx -> text_key, per old split
     split_idx_text: dict[str, dict[int, str]] = {}
     for sp in ("test", "val", "train"):
         p = OLD_SPLITS / f"{sp}.json"
@@ -134,7 +134,7 @@ def build_prior_predictions() -> dict[tuple[str, str, str], str]:
             if tkey is None:
                 continue
             prior.setdefault((model, strategy, tkey), pred_text)
-    logger.info("Predicoes antigas reaproveitaveis: %d entradas", len(prior))
+    logger.info("Reusable old predictions: %d entries", len(prior))
     return prior
 
 
@@ -142,12 +142,12 @@ def get_client_and_invoke(model_alias: str, registry: dict, cfg: dict):
     if model_alias == "sabia4":
         api_key = os.environ.get("API_KEY_MARITACA", "")
         if not api_key:
-            raise ValueError("API_KEY_MARITACA nao encontrada no .env")
+            raise ValueError("API_KEY_MARITACA not found in .env")
         return MaritacaClient(api_key=api_key), "invoke_maritaca", "sabia-4"
     models = registry.get("rankingGeneralPurpose", [])
     entry = next((m for m in models if m["alias"] == model_alias), None)
     if entry is None:
-        raise ValueError(f"Alias nao encontrado: {model_alias!r}")
+        raise ValueError(f"Alias not found: {model_alias!r}")
     field, value = get_invoke_field(entry)
     region = os.environ.get("AWS_DEFAULT_REGION", "sa-east-1")
     fb = next((m for m in models if m["alias"] == "claude_3_haiku"), None)
@@ -156,7 +156,7 @@ def get_client_and_invoke(model_alias: str, registry: dict, cfg: dict):
 
 
 def compute_metrics(pairs: list[tuple[str, str]]) -> dict:
-    """pairs = [(true_text, pred_text)] já filtrados (pred não-nulo)."""
+    """pairs = [(true_text, pred_text)] already filtered (non-null pred)."""
     labels = CLASS_NAMES
     n = len(pairs)
     correct = sum(1 for t, p in pairs if t == p)
@@ -223,7 +223,7 @@ async def process_pending(client, field, value, strategy, pending, ckpt_file,
             await async_append_record(ckpt_file, rec)
             progress["done"] += 1
             if progress["done"] % 100 == 0 or progress["done"] == total:
-                logger.info("  [%s] %d/%d — custo acum.: $%.4f",
+                logger.info("  [%s] %d/%d — accum. cost: $%.4f",
                             strategy, progress["done"], total,
                             client.cost_summary()["total_cost_usd"])
             el = time.perf_counter() - t0
@@ -239,7 +239,7 @@ def run_model_strategy(model, strategy, bert_recs, prior, registry, cfg, args):
     NEW_CKPT_DIR.mkdir(parents=True, exist_ok=True)
     ckpt_file = NEW_CKPT_DIR / f"{model}__{strategy}__berttest.jsonl"
 
-    # carrega checkpoint novo já existente (keyed por 'key')
+    # load already-existing new checkpoint (keyed by 'key')
     done_by_key = {}
     if ckpt_file.exists():
         for line in open(ckpt_file, encoding="utf-8"):
@@ -252,7 +252,7 @@ def run_model_strategy(model, strategy, bert_recs, prior, registry, cfg, args):
             except Exception:
                 pass
 
-    # monta resultados: reusa prior; coleta pendentes
+    # build results: reuse prior; collect pending
     reused = 0
     pending = []
     for rec in bert_recs:
@@ -261,7 +261,7 @@ def run_model_strategy(model, strategy, bert_recs, prior, registry, cfg, args):
             continue
         pk = (model, strategy, k)
         if pk in prior:
-            # grava como reaproveitado (sem custo)
+            # record as reused (zero cost)
             append_record(ckpt_file, {
                 "key": k, "label_text": rec["label_text"],
                 "pred_text": prior[pk], "parse_ok": True,
@@ -271,13 +271,13 @@ def run_model_strategy(model, strategy, bert_recs, prior, registry, cfg, args):
         else:
             pending.append((k, rec["text"], rec["label_text"]))
 
-    logger.info("[%s | %s] reaproveitados=%d  pendentes=%d  (ja no ckpt novo=%d)",
+    logger.info("[%s | %s] reused=%d  pending=%d  (already in new ckpt=%d)",
                 model, strategy, reused, len(pending), len(done_by_key))
 
     if pending and not args.dry_run:
         client, field, value = get_client_and_invoke(model, registry, cfg)
         if not client.smoke_test(field, value):
-            logger.error("Smoke test falhou para %s — pulando", model)
+            logger.error("Smoke test failed for %s — skipping", model)
             return None
         exp = cfg.get("experiment", {})
         asyncio.run(process_pending(
@@ -288,7 +288,7 @@ def run_model_strategy(model, strategy, bert_recs, prior, registry, cfg, args):
             delay=exp.get("delay_between_calls", 0.5),
         ))
 
-    # recarrega tudo e calcula métricas
+    # reload everything and compute metrics
     all_recs = {}
     for line in open(ckpt_file, encoding="utf-8"):
         line = line.strip()
@@ -325,7 +325,7 @@ def run_model_strategy(model, strategy, bert_recs, prior, registry, cfg, args):
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     with open(RESULTS_DIR / f"{model}__{strategy}__berttest.json", "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
-    logger.info("[%s | %s] F1-macro=%.4f acc=%.4f falhas=%d custo_novo=$%.4f",
+    logger.info("[%s | %s] F1-macro=%.4f acc=%.4f failures=%d new_cost=$%.4f",
                 model, strategy, metrics["f1_macro"], metrics["accuracy"],
                 n_failed, cost)
     return out
@@ -337,7 +337,7 @@ def main():
     ap.add_argument("--strategies", nargs="+", default=["all"])
     ap.add_argument("--concurrency", type=int, default=5)
     ap.add_argument("--dry-run", action="store_true",
-                    help="So mostra reaproveitamento/pendentes, sem chamar API")
+                    help="Only shows reuse/pending stats, without calling the API")
     args = ap.parse_args()
 
     models = ALL_MODELS if "all" in args.models else args.models
@@ -347,13 +347,13 @@ def main():
     registry = load_model_registry(cfg["data"]["bedrock_registry"])
 
     bert_recs = load_bert_test()
-    logger.info("Test canonico (BERT): %d trechos | dist: %s",
+    logger.info("Canonical test set (BERT): %d excerpts | dist: %s",
                 len(bert_recs), dict(Counter(r["label_text"] for r in bert_recs)))
     prior = build_prior_predictions()
 
     summary = []
     for model in models:
-        # carrega config específica do modelo (se houver)
+        # load model-specific config (if it exists)
         mcfg_path = _ROOT / "configs" / f"{model}.yaml"
         cfg_m = dict(cfg)
         if mcfg_path.exists():
@@ -365,9 +365,9 @@ def main():
                 if r:
                     summary.append(r)
             except Exception as e:
-                logger.error("Falha em %s/%s: %s", model, strategy, str(e)[:200])
+                logger.error("Failure in %s/%s: %s", model, strategy, str(e)[:200])
 
-    # CSV consolidado
+    # Consolidated CSV
     if summary:
         import csv
         cols = ["model", "strategy", "n_evaluated", "n_reused",
@@ -380,9 +380,9 @@ def main():
                 w.writerow(r)
         total_new = sum(r["api_cost_usd_new_calls"] for r in summary)
         logger.info("=" * 60)
-        logger.info("CONCLUIDO. %d combinacoes. Custo TOTAL de chamadas novas: $%.4f",
+        logger.info("DONE. %d combinations. TOTAL cost of new calls: $%.4f",
                     len(summary), total_new)
-        logger.info("Resultados: %s", RESULTS_DIR)
+        logger.info("Results: %s", RESULTS_DIR)
 
 
 if __name__ == "__main__":

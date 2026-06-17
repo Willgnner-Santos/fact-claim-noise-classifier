@@ -1,9 +1,9 @@
 """
-01_smoke_test_models.py — Testa todos os 8 modelos com "oi" antes de rodar.
+01_smoke_test_models.py — Tests all 8 models with "hi" before running.
 
-Gera um relatório JSON com status de cada modelo.
+Generates a JSON report with the status of each model.
 
-Uso:
+Usage:
   python scripts/01_smoke_test_models.py
   python scripts/01_smoke_test_models.py --models claude_sonnet_46 sabia4
 """
@@ -33,7 +33,7 @@ from ftr_llm.bedrock_client import BedrockClient
 from ftr_llm.maritaca_client import MaritacaClient
 from ftr_llm.config import load_config, load_model_registry, get_invoke_field
 
-# Mapeamento alias → config (os 8 modelos do experimento)
+# Alias -> config mapping (the 8 experiment models)
 EXPERIMENT_MODELS = [
     "claude_sonnet_46",
     "qwen3_32b",
@@ -54,7 +54,7 @@ def get_client(model_alias: str, registry: dict, cfg: dict):
     models = registry.get("rankingGeneralPurpose", [])
     entry = next((m for m in models if m["alias"] == model_alias), None)
     if entry is None:
-        raise ValueError(f"Modelo não encontrado no registry: {model_alias}")
+        raise ValueError(f"Model not found in registry: {model_alias}")
 
     field, value = get_invoke_field(entry)
     fallback = next(
@@ -67,7 +67,7 @@ def get_client(model_alias: str, registry: dict, cfg: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Smoke test dos modelos")
+    parser = argparse.ArgumentParser(description="Smoke test for models")
     parser.add_argument("--config", default=str(_ROOT / "configs" / "_base_llm.yaml"))
     parser.add_argument("--models", nargs="+", default=EXPERIMENT_MODELS)
     args = parser.parse_args()
@@ -79,13 +79,13 @@ def main():
 
     results = []
     for alias in args.models:
-        logger.info("Testando: %s", alias)
+        logger.info("Testing: %s", alias)
         try:
             client, field, value = get_client(alias, registry, cfg)
             ok = client.smoke_test(field, value)
             results.append({"model": alias, "ok": ok, "error": None})
         except Exception as e:
-            logger.error("Erro ao testar %s: %s", alias, e)
+            logger.error("Error testing %s: %s", alias, e)
             results.append({"model": alias, "ok": False, "error": str(e)})
 
     out_path = reports_dir / "smoke_test_results.json"
@@ -93,11 +93,11 @@ def main():
         json.dump(results, f, ensure_ascii=False, indent=2)
 
     ok_count = sum(1 for r in results if r["ok"])
-    logger.info("Resultado: %d/%d modelos OK — relatório: %s", ok_count, len(results), out_path)
+    logger.info("Result: %d/%d models OK — report: %s", ok_count, len(results), out_path)
 
     failed = [r["model"] for r in results if not r["ok"]]
     if failed:
-        logger.warning("Modelos com falha: %s", failed)
+        logger.warning("Models with failure: %s", failed)
 
 
 if __name__ == "__main__":

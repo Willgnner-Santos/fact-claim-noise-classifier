@@ -1,11 +1,11 @@
 """
-Carrega, anonimiza, pré-processa e faz split do dataset para os experimentos LLM.
+Loads, anonymizes, preprocesses and splits the dataset for LLM experiments.
 
-Reutiliza:
+Reuses:
   - src/ftr/anonymize.py  — Anonymizer + AnonymizationConfig
   - src/ftr/preprocess.py — build_preprocessor + PreprocessConfig
 
-Salva um dataset pré-processado em JSON para evitar reprocessamento.
+Saves a preprocessed dataset in JSON to avoid reprocessing.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 # ---------------------------------------------------------------------------
-# Adiciona src/ ao path para reutilizar src/ftr sem instalar como pacote
+# Adds src/ to path to reuse src/ftr without installing as a package
 # ---------------------------------------------------------------------------
 _SRC = Path(__file__).parent.parent.parent / "src"
 if str(_SRC) not in sys.path:
@@ -57,7 +57,7 @@ def preprocess_and_anonymize(
     anon_cfg: AnonymizationConfig,
     prep_cfg: PreprocessConfig,
 ) -> tuple[list[dict], dict]:
-    """Aplica pré-processo + anonimização. Retorna (records, audit_summary)."""
+    """Applies preprocessing + anonymization. Returns (records, audit_summary)."""
     anonymizer = Anonymizer(anon_cfg)
     anonymizer.ensure_ready()
     preprocessor = build_preprocessor(prep_cfg)
@@ -85,7 +85,7 @@ def make_splits(
     val_size: float = 0.10,
     seed: int = 42,
 ) -> dict[str, list[dict]]:
-    """Cria splits train/val/test estratificados por label."""
+    """Creates train/val/test splits stratified by label."""
     labels = [r["label"] for r in records]
     idx = list(range(len(records)))
 

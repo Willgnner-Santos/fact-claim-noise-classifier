@@ -1,22 +1,22 @@
-# ── Dados (corpus confidencial) ───────────────────────────────────────────────
+# ── Corpus data (confidential) ────────────────────────────────────────────────
 Models_BERT/Data/
 LLMs/data/splits/
 
-# ── Credenciais ────────────────────────────────────────────────────────────────
+# ── Credentials ───────────────────────────────────────────────────────────────
 .env
 **/.env
 
-# ── Pesos BERT e checkpoints de treino (arquivo .safetensors, .bin, .pt) ──────
+# ── BERT weights and training checkpoints (.safetensors, .bin, .pt) ───────────
 **/*.safetensors
 **/*.bin
 **/*.pt
 **/*.ckpt
 
-# ── Checkpoints LLM (contêm índice vinculado ao corpus) ───────────────────────
+# ── LLM checkpoints (contain index linked to corpus) ──────────────────────────
 LLMs/data/checkpoints/
 LLMs/data/checkpoints_bertset/
 
-# ── pkl de modelos intermediários (só lightgbm/model_best.pkl sobe) ───────────
+# ── Intermediate model pkl files (only lightgbm/model_best.pkl is committed) ──
 ClassicML/experiments/*/checkpoints/model_fold*.pkl
 ClassicML/experiments/extra_trees__*/
 ClassicML/experiments/svm_rbf__*/
@@ -26,13 +26,13 @@ ClassicML/experiments/naive_bayes__*/
 ClassicML/experiments/logistic_regression__*/
 ClassicML/experiments/xgboost__*/
 
-# ── Arquivos do processo editorial ────────────────────────────────────────────
+# ── Editorial process files ────────────────────────────────────────────────────
 *.tex
 Revisão-Literatura/
 Métricas_Avaliação_Modelos.xlsx
 figuras_resultados/
 
-# ── Ambientes virtuais e caches ───────────────────────────────────────────────
+# ── Virtual environments and caches ───────────────────────────────────────────
 venv/
 **/__pycache__/
 *.pyc
@@ -41,7 +41,7 @@ venv/
 .venv/
 .ipynb_checkpoints/
 
-# ── Logs e temporários ────────────────────────────────────────────────────────
+# ── Logs and temp files ────────────────────────────────────────────────────────
 *.log
 LLMs/data/reeval_run.log
 

@@ -1,17 +1,17 @@
 """
-ftr_classic — IA Clássica para classificação Fato/Tese/Ruído
-=============================================================
+ftr_classic — Classical ML for Fato/Tese/Ruído classification
+==============================================================
 
-Pipeline de machine learning clássico (sklearn) com:
-- 7 modelos: LR, SVM Linear, SVM RBF, Random Forest, Gradient Boosting,
+Classical machine learning pipeline (sklearn) with:
+- 7 models: LR, Linear SVM, RBF SVM, Random Forest, Gradient Boosting,
   Naive Bayes, Extra Trees
-- K-Fold estratificado (5 folds) + avaliação no teste hold-out
-- Todas as métricas da planilha Métricas_Avaliação_Modelos.xlsx
-- Gráficos PT-BR e EN
-- Logs detalhados e resultados consolidados
-- Reprodutibilidade: seed, versões, configurações
+- Stratified K-Fold (5 folds) + hold-out test evaluation
+- All metrics from the Métricas_Avaliação_Modelos.xlsx spreadsheet
+- PT-BR and EN figures
+- Detailed logs and consolidated results
+- Reproducibility: seed, library versions, configurations
 
-Mapeamento canônico (idêntico ao pipeline BERT):
+Canonical mapping (identical to the BERT pipeline):
     0 -> tese  |  1 -> fato  |  2 -> ruido
 """
 

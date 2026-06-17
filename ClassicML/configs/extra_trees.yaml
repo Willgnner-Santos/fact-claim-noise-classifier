@@ -1,5 +1,5 @@
 experiment_id: "extra_trees"
-description: "Extra Trees — mais rápido que Random Forest, boa generalização"
+description: "Extra Trees — faster than Random Forest, good generalisation"
 model:
   name: "ExtraTreesClassifier"
   family: "ensemble"

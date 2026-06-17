@@ -1,13 +1,13 @@
 """
-Prompts para classificação jurídica Fato/Tese/Ruído.
+Prompts for legal classification Fato/Tese/Ruído.
 
-Estratégias implementadas:
-  - zero_shot         : instrução direta sem exemplos
-  - few_shot          : instrução + 3 exemplos por classe (fixos)
-  - evidence_constrained : few-shot com output estruturado (classe + evidência + justificativa)
-  - decomposed        : perguntas intermediárias jurídicas → classe final
+Implemented strategies:
+  - zero_shot         : direct instruction without examples
+  - few_shot          : instruction + 3 examples per class (fixed)
+  - evidence_constrained : few-shot with structured output (class + evidence + justification)
+  - decomposed        : intermediate legal questions -> final class
 
-Output esperado sempre em JSON para parsing determinístico.
+Expected output always in JSON for deterministic parsing.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from typing import Literal
 StrategyName = Literal["zero_shot", "few_shot", "evidence_constrained", "decomposed"]
 
 # ---------------------------------------------------------------------------
-# Exemplos canônicos (few-shot fixos — 1 por classe)
+# Canonical examples (fixed few-shot — 1 per class)
 # ---------------------------------------------------------------------------
 _FEW_SHOT_EXAMPLES = [
     {
@@ -52,7 +52,7 @@ _FEW_SHOT_EXAMPLES = [
 ]
 
 # ---------------------------------------------------------------------------
-# System prompt compartilhado
+# Shared system prompt
 # ---------------------------------------------------------------------------
 _SYSTEM = (
     "Você é um especialista em direito processual civil brasileiro. "
@@ -92,11 +92,11 @@ def _examples_block_evidence() -> str:
 
 
 # ---------------------------------------------------------------------------
-# Builders de prompt
+# Prompt builders
 # ---------------------------------------------------------------------------
 
 def build_zero_shot(text: str) -> tuple[str, str]:
-    """Retorna (system, user)."""
+    """Returns (system, user)."""
     user = (
         f'Classifique o trecho abaixo em FATO, TESE ou RUIDO.\n\n'
         f'Trecho:\n"""\n{text}\n"""\n\n'
@@ -129,8 +129,8 @@ def build_evidence_constrained(text: str) -> tuple[str, str]:
 
 def build_decomposed(text: str) -> tuple[str, str]:
     """
-    Prompt de cadeia decomposed: 3 perguntas intermediárias jurídicas → classe.
-    Regra de prioridade explícita para guiar o modelo na decisão final.
+    Decomposed chain prompt: 3 intermediate legal questions -> final class.
+    Explicit priority rule to guide the model in the final decision.
     """
     user = (
         f'Analise o trecho jurídico abaixo respondendo as três perguntas:\n\n'
@@ -151,7 +151,7 @@ def build_decomposed(text: str) -> tuple[str, str]:
 
 
 def build_prompt(strategy: StrategyName, text: str) -> tuple[str, str]:
-    """Dispatcher central."""
+    """Central dispatcher."""
     builders = {
         "zero_shot": build_zero_shot,
         "few_shot": build_few_shot,
@@ -160,5 +160,5 @@ def build_prompt(strategy: StrategyName, text: str) -> tuple[str, str]:
     }
     fn = builders.get(strategy)
     if fn is None:
-        raise ValueError(f"Estratégia desconhecida: {strategy!r}. Opções: {list(builders)}")
+        raise ValueError(f"Unknown strategy: {strategy!r}. Options: {list(builders)}")
     return fn(text)

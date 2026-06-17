@@ -1,9 +1,9 @@
 """
-Registry de modelos clássicos sklearn.
+Registry of classical sklearn models.
 
-Todos os modelos são instanciados a partir do config YAML, garantindo
-reprodutibilidade. Modelos sem predict_proba (LinearSVC) são envolvidos
-em CalibratedClassifierCV para produzir probabilidades calibradas.
+All models are instantiated from the YAML config, ensuring reproducibility.
+Models without predict_proba (LinearSVC) are wrapped in CalibratedClassifierCV
+to produce calibrated probabilities.
 """
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ _REGISTRY = {
     "ExtraTreesClassifier": ExtraTreesClassifier,
 }
 
-# XGBoost e LightGBM — importação lazy (não obrigatórios, mas recomendados)
+# XGBoost and LightGBM — lazy import (optional but recommended)
 def _try_register_boosting():
     try:
         from xgboost import XGBClassifier
@@ -44,23 +44,23 @@ _try_register_boosting()
 
 
 def build_model(config: dict):
-    """Instancia o modelo conforme o config.
+    """Instantiate the model according to the config.
 
-    Se o modelo não suporta predict_proba (ex.: LinearSVC), envolve em
-    CalibratedClassifierCV com calibração isotônica para produzir
-    probabilidades necessárias para ROC-AUC, Log Loss etc.
+    If the model does not support predict_proba (e.g. LinearSVC), wraps it in
+    CalibratedClassifierCV with isotonic calibration to produce the
+    probabilities required for ROC-AUC, Log Loss, etc.
     """
     mc = config["model"]
     cls = _REGISTRY.get(mc["name"])
     if cls is None:
-        raise ValueError(f"Modelo desconhecido: {mc['name']}. Disponíveis: {list(_REGISTRY)}")
+        raise ValueError(f"Unknown model: {mc['name']}. Available: {list(_REGISTRY)}")
 
     params = mc.get("params", {}) or {}
     model = cls(**params)
 
     if not mc.get("requires_proba", True):
-        # cv=3 pode falhar se uma classe tiver < 3 amostras no fold.
-        # Usamos cv=2 como mínimo seguro; em datasets minúsculos cai para sigmoid.
+        # cv=3 may fail if a class has < 3 samples in the fold.
+        # Use cv=2 as the safe minimum; on tiny datasets falls back to sigmoid.
         model = CalibratedClassifierCV(model, method="isotonic", cv=2)
 
     return model

@@ -1,12 +1,12 @@
 """
-Cliente Bedrock com retry, fallback e logging de custo.
+Bedrock client with retry, fallback and cost logging.
 
-Usa a API Converse (suporta todos os modelos do arquivo bedrock_modelos_refatorado.json).
-Inclui:
-  - Retry exponencial com jitter
-  - Fallback para modelo reserva se o primário falhar
-  - Estimativa de custo por chamada (tokens input + output)
-  - Smoke-test ("oi") para validar modelo antes de processar o dataset
+Uses the Converse API (supports all models from bedrock_modelos_refatorado.json).
+Includes:
+  - Exponential retry with jitter
+  - Fallback to backup model if the primary fails
+  - Cost estimate per call (input + output tokens)
+  - Smoke-test ("hi") to validate model before processing the dataset
 """
 
 from __future__ import annotations
@@ -25,8 +25,8 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger("ftr_llm.bedrock")
 
 # ---------------------------------------------------------------------------
-# Preços estimados (USD / 1M tokens) — atualizar conforme Bedrock pricing
-# Valores conservadores para estimativa de custo.
+# Estimated prices (USD / 1M tokens) — update according to Bedrock pricing
+# Conservative values for cost estimation.
 # ---------------------------------------------------------------------------
 _PRICE_TABLE: dict[str, dict[str, float]] = {
     # Claude
@@ -60,7 +60,7 @@ _PRICE_TABLE: dict[str, dict[str, float]] = {
     "gemma":          {"input": 0.10, "output":  0.30},
     # GPT-OSS
     "gpt-oss":        {"input": 0.80, "output":  2.40},
-    # Maritaca Sabiá (API direta, não Bedrock)
+    # Maritaca Sabiá (direct API, not Bedrock)
     "sabia":          {"input": 0.50, "output":  1.50},
     "default":        {"input": 1.00, "output":  3.00},
 }
@@ -94,7 +94,7 @@ class CallResult:
 
 class BedrockClient:
     """
-    Wrapper sobre boto3 Bedrock Converse com retry, fallback e métricas de custo.
+    Wrapper over boto3 Bedrock Converse with retry, fallback and cost metrics.
     """
 
     def __init__(
@@ -116,7 +116,7 @@ class BedrockClient:
             region_name=region,
             config=BotocoreConfig(
                 read_timeout=int(timeout),
-                max_pool_connections=50,  # suporta concorrência sem "connection pool exhausted"
+                max_pool_connections=50,  # supports concurrency without "connection pool exhausted"
             ),
         )
         self.total_cost_usd: float = 0.0
@@ -136,7 +136,7 @@ class BedrockClient:
             "messages": [{"role": "user", "content": [{"text": user_message}]}],
             "inferenceConfig": {"maxTokens": max_tokens},
         }
-        # Alguns modelos Claude não aceitam temperature — omite se 0
+        # Some Claude models do not accept temperature — omit if 0
         if temperature > 0:
             args["inferenceConfig"]["temperature"] = temperature
 
@@ -196,7 +196,7 @@ class BedrockClient:
         max_tokens: int = 512,
         temperature: float = 0.0,
     ) -> CallResult:
-        """Chama o modelo com retry exponencial + jitter. Usa fallback se esgotar tentativas."""
+        """Calls the model with exponential retry + jitter. Uses fallback if retries are exhausted."""
         last_error = None
         for attempt in range(self.max_retries + 1):
             try:
@@ -207,12 +207,12 @@ class BedrockClient:
                 code = e.response["Error"]["Code"]
                 last_error = str(e)
                 logger.warning(
-                    "Tentativa %d/%d falhou (%s): %s",
+                    "Attempt %d/%d failed (%s): %s",
                     attempt + 1, self.max_retries + 1, code, last_error[:120]
                 )
                 if code in ("ThrottlingException", "ServiceUnavailableException", "ModelStreamErrorException"):
                     delay = self.base_delay * (2 ** attempt) + random.uniform(0, 1)
-                    logger.info("Aguardando %.1fs antes de retry...", delay)
+                    logger.info("Waiting %.1fs before retry...", delay)
                     time.sleep(delay)
                 elif code in ("ValidationException", "ModelNotReadyException"):
                     break
@@ -221,18 +221,18 @@ class BedrockClient:
                     time.sleep(delay)
             except Exception as e:
                 last_error = str(e)
-                logger.warning("Erro inesperado tentativa %d: %s", attempt + 1, last_error[:120])
+                logger.warning("Unexpected error attempt %d: %s", attempt + 1, last_error[:120])
                 time.sleep(self.base_delay * (2 ** attempt))
 
-        # Tenta fallback
+        # Try fallback
         if self.fallback_model_id and self.fallback_model_id != invoke_value:
-            logger.warning("Usando modelo fallback: %s", self.fallback_model_id)
+            logger.warning("Using fallback model: %s", self.fallback_model_id)
             try:
                 return self._call_once(
                     "modelId", self.fallback_model_id, system_prompt, user_message, max_tokens, temperature
                 )
             except Exception as fe:
-                last_error = f"fallback também falhou: {fe}"
+                last_error = f"fallback also failed: {fe}"
 
         return CallResult(
             text="",
@@ -246,12 +246,12 @@ class BedrockClient:
         )
 
     def smoke_test(self, invoke_field: str, invoke_value: str) -> bool:
-        """Testa o modelo com 'Responda apenas com: oi'. Retorna True se responder."""
+        """Tests the model with 'Reply only with: hi'. Returns True if it responds."""
         logger.info("Smoke test: %s", invoke_value)
         result = self.call(
             invoke_field, invoke_value,
             system_prompt="",
-            user_message="Responda apenas com: oi",
+            user_message="Reply only with: hi",
             max_tokens=10,
             temperature=0.0,
         )
@@ -268,7 +268,7 @@ class BedrockClient:
         max_tokens: int = 512,
         temperature: float = 0.0,
     ) -> CallResult:
-        """Versão async de call() — executa o boto3 síncrono em thread pool."""
+        """Async version of call() — runs the synchronous boto3 in a thread pool."""
         return await asyncio.to_thread(
             self.call,
             invoke_field, invoke_value,

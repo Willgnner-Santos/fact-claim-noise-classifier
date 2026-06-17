@@ -1,12 +1,12 @@
 """
-Sistema de checkpoint para experimentos LLM.
+Checkpoint system for LLM experiments.
 
-Salva predições linha a linha em JSONL. Se o processo cair, o runner retoma
-do último índice salvo sem repetir chamadas já feitas.
+Saves predictions line by line in JSONL. If the process crashes, the runner resumes
+from the last saved index without repeating calls already made.
 
-Estrutura de arquivo:
+File structure:
   checkpoints/{model_alias}_{strategy}_{split}.jsonl
-    → uma linha por instância: {"idx": int, "label": int, "pred": int|null, ...}
+    -> one line per instance: {"idx": int, "label": int, "pred": int|null, ...}
 """
 
 from __future__ import annotations
@@ -19,8 +19,8 @@ from typing import Any
 
 logger = logging.getLogger("ftr_llm.checkpoint")
 
-# Lock global por arquivo de checkpoint — garante que escritas concorrentes
-# de múltiplas coroutines não se interlacem na mesma linha JSONL.
+# Global lock per checkpoint file — ensures that concurrent writes
+# from multiple coroutines do not interleave on the same JSONL line.
 _file_locks: dict[str, asyncio.Lock] = {}
 
 
@@ -36,7 +36,7 @@ def checkpoint_path(ckpt_dir: Path, model_alias: str, strategy: str, split: str)
 
 
 def load_checkpoint(path: Path) -> dict[int, dict]:
-    """Retorna {idx: record} com todas as entradas já salvas."""
+    """Returns {idx: record} with all already-saved entries."""
     done: dict[int, dict] = {}
     if not path.exists():
         return done
@@ -50,12 +50,12 @@ def load_checkpoint(path: Path) -> dict[int, dict]:
                 done[rec["idx"]] = rec
             except Exception:
                 pass
-    logger.info("Checkpoint carregado: %d registros em %s", len(done), path.name)
+    logger.info("Checkpoint loaded: %d records in %s", len(done), path.name)
     return done
 
 
 def append_record(path: Path, record: dict) -> None:
-    """Appenda um registro ao JSONL de checkpoint (escrita atômica por linha)."""
+    """Appends a record to the checkpoint JSONL (atomic write per line)."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
@@ -63,13 +63,13 @@ def append_record(path: Path, record: dict) -> None:
 
 
 async def async_append_record(path: Path, record: dict) -> None:
-    """Versão async-safe de append_record — usa lock por arquivo."""
+    """Async-safe version of append_record — uses per-file lock."""
     async with _get_lock(path):
         await asyncio.to_thread(append_record, path, record)
 
 
 def checkpoint_to_lists(done: dict[int, dict], n_total: int) -> tuple[list, list, list[int]]:
-    """Converte checkpoint em (y_true, y_pred, failed_idxs)."""
+    """Converts checkpoint into (y_true, y_pred, failed_idxs)."""
     y_true, y_pred = [], []
     failed = []
     for i in range(n_total):

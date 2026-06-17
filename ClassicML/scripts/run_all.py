@@ -1,4 +1,4 @@
-"""Roda todos os modelos clássicos em sequência com alerta de convergência."""
+"""Run all classical models in sequence with a convergence alert."""
 from __future__ import annotations
 import argparse, glob, json, sys, traceback
 from pathlib import Path
@@ -9,7 +9,7 @@ PROJ = ROOT.parent
 
 sys.path.insert(0, str(ROOT))
 
-# Localiza src/ftr: tenta Models_BERT/src primeiro, depois src/ direto
+# Locate src/ftr: tries Models_BERT/src first, then src/ directly
 for _candidate in [PROJ / "Models_BERT" / "src", PROJ / "src"]:
     if (_candidate / "ftr").exists():
         sys.path.insert(0, str(_candidate))
@@ -45,27 +45,27 @@ def main():
                 completed_f1.append((eid, f1))
                 print(f"  f1_macro: {f1:.4f} ± {status.get('f1_macro_std',0):.4f}")
         except Exception as e:
-            print(f"!!! Falha em {eid}: {e}", file=sys.stderr)
+            print(f"!!! Failure in {eid}: {e}", file=sys.stderr)
             traceback.print_exc()
             results.append((eid, "failed"))
             continue
 
-        # Alerta de convergência
+        # Convergence alert
         if len(completed_f1) >= args.window:
             recent = [f for _, f in completed_f1[-args.window:]]
             span = max(recent) - min(recent)
             if span <= args.convergence_threshold:
                 names = [n for n, _ in completed_f1[-args.window:]]
                 print(f"\n{'='*60}")
-                print(f"ALERTA: os últimos {args.window} modelos variam apenas {span:.4f} de f1_macro.")
+                print(f"ALERT: the last {args.window} models vary by only {span:.4f} in f1_macro.")
                 print(f"  {names}: {[f'{f:.4f}' for _, f in completed_f1[-args.window:]]}")
                 if not args.non_interactive:
-                    resp = input("Continuar? [c/s] ").strip().lower()
-                    if resp == "s":
-                        print("Parando por decisão do usuário.")
+                    resp = input("Continue? [y/n] ").strip().lower()
+                    if resp == "n":
+                        print("Stopping at user request.")
                         break
 
-    print("\n=== RESUMO ===")
+    print("\n=== SUMMARY ===")
     for eid, st in results:
         print(f"  {eid:25s} -> {st}")
 

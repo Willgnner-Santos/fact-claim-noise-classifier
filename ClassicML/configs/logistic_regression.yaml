@@ -1,5 +1,5 @@
 experiment_id: "logistic_regression"
-description: "Regressão Logística (baseline forte — referência do paper)"
+description: "Logistic Regression (strong baseline — paper reference)"
 model:
   name: "LogisticRegression"
   family: "linear"

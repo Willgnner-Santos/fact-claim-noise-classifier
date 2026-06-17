@@ -1,5 +1,5 @@
 experiment_id: "random_forest"
-description: "Random Forest — ensemble de árvores de decisão"
+description: "Random Forest — ensemble of decision trees"
 model:
   name: "RandomForestClassifier"
   family: "ensemble"

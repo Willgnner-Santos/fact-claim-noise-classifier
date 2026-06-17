@@ -1,14 +1,14 @@
-# Claude 3 Haiku — tier: leve
+# Claude 3 Haiku — tier: light
 _base: "_base_llm.yaml"
 
 model:
   alias: "claude_3_haiku"
   display_name: "Claude 3 Haiku"
-  tier: "leve"
-  provider: "leve"
+  tier: "light"
+  provider: "light"
 
 experiment:
-  # Modelos caros (elite/top): só no test set, 1 estratégia principal
-  # Modelos baratos (leve/bom): todas as estratégias no dev e test
+  # Expensive models (elite/top): test set only, 1 main strategy
+  # Cheap models (light/good): all strategies on dev and test
   strategies: ["zero_shot", "few_shot", "evidence_constrained", "decomposed"]
   delay_between_calls: 0.5

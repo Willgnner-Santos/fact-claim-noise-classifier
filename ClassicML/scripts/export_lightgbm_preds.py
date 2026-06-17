@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-"""Exporta as predicoes por instancia do LightGBM no test canonico, para o
-teste pareado de McNemar (BERT x Classic ML).
+"""Export per-instance predictions of LightGBM on the canonical test set, for
+the McNemar paired test (BERT vs Classic ML).
 
-NAO retreina: carrega o modelo ja salvo (checkpoints/model_best.pkl) que gerou
-o resultado do artigo (F1-macro ~0,973), preve no mesmo test.jsonl usado pelos
-BERTs e salva test_predictions.npz no MESMO formato e ORDEM dos npz do BERT.
+Does NOT retrain: loads the already-saved model (checkpoints/model_best.pkl) that
+produced the paper result (F1-macro ~0.973), predicts on the same test.jsonl used
+by the BERTs, and saves test_predictions.npz in the SAME format and ORDER as the
+BERT npz files.
 
-Uso (a partir de E:\\DIACDE\\Fato_Tese_Ruido\\ClassicML):
+Usage (from E:\\DIACDE\\Fato_Tese_Ruido\\ClassicML):
     venv\\Scripts\\python.exe scripts\\export_lightgbm_preds.py
 """
 import json, pickle, sys
@@ -30,31 +31,31 @@ def f1_macro(yt, yp):
         f1s.append(2*pr*re/(pr+re) if pr+re else 0.0)
     return float(np.mean(f1s))
 
-# 1. carrega test na MESMA ordem do jsonl (igual aos npz do BERT)
+# 1. Load test in the SAME order as the jsonl (identical to the BERT npz files)
 rows = [json.loads(l) for l in open(TEST_JSONL, encoding="utf-8")]
 texts = [r["text"] for r in rows]
 y_true = np.array([LABEL2ID[r["label_text"]] for r in rows], dtype=np.int64)
 print(f"test: {len(texts)} trechos | dist y_true={np.bincount(y_true).tolist()}")
 
-# 2. carrega modelo + vetorizador salvos
+# 2. Load saved model + vectorizer
 if not PKL.exists():
-    sys.exit(f"ERRO: nao encontrei {PKL}")
+    sys.exit(f"ERROR: could not find {PKL}")
 with open(PKL, "rb") as f:
     obj = pickle.load(f)
 model, vec = obj["model"], obj["vectorizer"]
 
-# 3. preve
+# 3. Predict
 X = vec.transform([str(t) for t in texts])
 y_pred = model.predict(X).astype(np.int64)
 proba = model.predict_proba(X).astype(np.float64) if hasattr(model, "predict_proba") else None
 
-# 4. valida que e o modelo do artigo (F1 ~0,973)
+# 4. Validate that this is the paper model (F1 ~0.973)
 f1 = f1_macro(y_true, y_pred)
-print(f"F1-macro recomputado = {f1:.4f}  (esperado ~0,9732)")
+print(f"F1-macro recomputed = {f1:.4f}  (expected ~0.9732)")
 if abs(f1 - 0.9732) > 0.01:
-    print("AVISO: F1 divergiu do artigo; verifique o modelo/splits antes de usar.")
+    print("WARNING: F1 diverged from the paper; verify the model/splits before use.")
 
-# 5. salva no formato dos BERTs
+# 5. Save in the BERT npz format
 OUT.parent.mkdir(parents=True, exist_ok=True)
 if proba is not None:
     np.savez(OUT, y_true=y_true, y_pred=y_pred, proba=proba)

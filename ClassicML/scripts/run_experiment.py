@@ -1,4 +1,4 @@
-"""Roda um único experimento de IA clássica."""
+"""Run a single classical ML experiment."""
 from __future__ import annotations
 import argparse, sys
 from pathlib import Path
@@ -30,7 +30,7 @@ def main():
     if status.get("f1_macro_mean"):
         print(f"f1_macro: {status['f1_macro_mean']:.4f} ± {status['f1_macro_std']:.4f}")
     if status.get("test_metrics"):
-        print(f"Teste — f1_macro: {status['test_metrics'].get('f1_macro', 'N/A'):.4f}")
+        print(f"Test — f1_macro: {status['test_metrics'].get('f1_macro', 'N/A'):.4f}")
 
 
 if __name__ == "__main__":

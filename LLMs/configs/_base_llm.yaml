@@ -1,5 +1,5 @@
 # =============================================================================
-# Config BASE — LLM experiments (herdado por todos os modelos)
+# BASE config — LLM experiments (inherited by all models)
 # =============================================================================
 
 seed: 42
@@ -28,21 +28,21 @@ preprocess:
   strategy: "none"
 
 experiment:
-  # Split principal de avaliação
+  # Primary evaluation split
   eval_split: "test"
-  # Estratégias a rodar (subset para economizar custo)
+  # Strategies to run (subset to reduce cost)
   strategies: ["zero_shot", "few_shot", "evidence_constrained", "decomposed"]
-  # Temperatura: 0 = determinístico
+  # Temperature: 0 = deterministic
   temperature: 0.0
   max_tokens: 1024
-  # Delay entre chamadas (segundos) — respeita rate limits
+  # Delay between calls (seconds) — respects rate limits
   delay_between_calls: 0.5
-  # Smoke test antes de iniciar
+  # Smoke test before starting
   smoke_test: true
-  # Chamadas concorrentes por modelo (asyncio.Semaphore).
-  # 5 é conservador e seguro para todos os provedores testados.
-  # Reduza para 2-3 se aparecerem ThrottlingException.
-  # Para --sample-n pequenos, o código limita automaticamente a min(concurrency, n//3).
+  # Concurrent calls per model (asyncio.Semaphore).
+  # 5 is conservative and safe for all tested providers.
+  # Reduce to 2-3 if ThrottlingException appears.
+  # For small --sample-n, code automatically limits to min(concurrency, n//3).
   concurrency: 5
 
 output:
@@ -51,5 +51,5 @@ output:
   reports_dir: "E:/Anonymous/Fato_Tese_Ruido/LLMs/data/reports"
   dpi: 150
 
-# Fallback: modelo usado se o primário falhar após todos os retries
+# Fallback: model used if the primary fails after all retries
 fallback_model_alias: "claude_3_haiku"

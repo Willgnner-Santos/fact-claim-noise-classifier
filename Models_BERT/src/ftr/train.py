@@ -1,16 +1,16 @@
 """
-Treino reprodutível de um experimento (wrapper do HuggingFace ``Trainer``).
+Reproducible training of an experiment (HuggingFace ``Trainer`` wrapper).
 
-Fiel aos notebooks originais (AdamW, weight_decay=0.01, max_length=512, truncação,
-EarlyStopping patience=2, save best, eval/save por época) e acrescenta boas
-práticas de reprodutibilidade: seed global, snapshot de config, ``env.json``,
-checkpoint por época, retomada automática, limpeza de memória, logs detalhados,
-métricas por época e ``status.json`` com tempos/erros.
+Faithful to the original notebooks (AdamW, weight_decay=0.01, max_length=512,
+truncation, EarlyStopping patience=2, save best, eval/save per epoch) and adds
+reproducibility best practices: global seed, config snapshot, ``env.json``,
+checkpoint per epoch, automatic resume, memory cleanup, detailed logs,
+per-epoch metrics and ``status.json`` with timestamps/errors.
 
-Função principal: :func:`train_experiment(config, paths)`.
+Main function: :func:`train_experiment(config, paths)`.
 
-Todas as importações de torch/transformers são preguiçosas para que o módulo
-possa ser inspecionado localmente sem GPU.
+All torch/transformers imports are lazy so the module can be inspected
+locally without a GPU.
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ from .seeding import set_seed
 
 
 def _now_stamp() -> str:
-    """Timestamp local 'YYYYmmdd_HHMMSS' (usa hora do sistema; ok fora de workflows)."""
+    """Local timestamp 'YYYYmmdd_HHMMSS' (uses system time; ok outside workflows)."""
     from datetime import datetime
 
     return datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -63,11 +63,11 @@ def _free_memory():
 
 
 def _detect_precision(requested: str) -> dict:
-    """Resolve precisão (bf16/fp16/tf32) conforme a GPU disponível.
+    """Resolves precision (bf16/fp16/tf32) based on available GPU.
 
-    ``requested`` pode ser ``"auto"``, ``"bf16"``, ``"fp16"`` ou ``"fp32"``.
-    Retorna kwargs prontos para o TrainingArguments + flag tf32. bf16 só é usado
-    se a GPU suportar (Ampere+ / compute capability >= 8.0, ex.: A100, H100).
+    ``requested`` can be ``"auto"``, ``"bf16"``, ``"fp16"`` or ``"fp32"``.
+    Returns kwargs ready for TrainingArguments + tf32 flag. bf16 is only used
+    if the GPU supports it (Ampere+ / compute capability >= 8.0, e.g. A100, H100).
     """
     out = {"bf16": False, "fp16": False, "tf32_supported": False}
     try:
@@ -80,14 +80,14 @@ def _detect_precision(requested: str) -> dict:
         out["tf32_supported"] = major >= 8  # Ampere+
         if requested == "auto":
             if bf16_ok:
-                out["bf16"] = True       # A100/H100 → bf16 (mais estável que fp16)
+                out["bf16"] = True       # A100/H100 → bf16 (more stable than fp16)
             else:
                 out["fp16"] = True       # T4/V100/Pascal → fp16
         elif requested == "bf16" and bf16_ok:
             out["bf16"] = True
         elif requested == "fp16":
             out["fp16"] = True
-        # "fp32" → ambos False
+        # "fp32" → both False
     except Exception:
         pass
     return out
@@ -103,21 +103,21 @@ def _resolve_num_workers(value) -> int:
 
 
 def build_training_arguments(config: dict, output_dir: Path):
-    """Constrói os ``TrainingArguments`` a partir do config.
+    """Builds ``TrainingArguments`` from config.
 
-    Aplica otimizações de throughput auto-detectadas pela GPU (bf16/tf32, eval
-    batch ampliado, workers, group_by_length) — decisão do usuário de aproveitar
-    a GPU ao máximo. Essas opções NÃO alteram a dinâmica de treino. O train batch
-    e o learning rate vêm do config (ver nota de LR scaling em DECISOES.md).
+    Applies GPU-auto-detected throughput optimisations (bf16/tf32, larger eval
+    batch, workers, group_by_length) — user's choice to maximise GPU utilisation.
+    These options do NOT change training dynamics. Train batch and learning rate
+    come from config (see LR scaling note in DECISOES.md).
     """
     from transformers import TrainingArguments
 
     tr = config["train"]
     train_bs = tr["per_device_train_batch_size"]
 
-    # Eval batch: sem gradientes, pode ser maior com segurança — mas com TETO,
-    # senão um train_bs grande (ex.: 128*4=512 @ 512 tokens) arrisca OOM justamente
-    # na validação da 1ª época. Teto configurável (eval_batch_cap).
+    # Eval batch: no gradients, can safely be larger — but with a CAP,
+    # otherwise a large train_bs (e.g. 128*4=512 @ 512 tokens) risks OOM
+    # precisely at validation epoch 1. Configurable cap (eval_batch_cap).
     eval_bs = tr.get("per_device_eval_batch_size")
     if not eval_bs:
         cap = tr.get("eval_batch_cap", 128)
@@ -125,7 +125,7 @@ def build_training_arguments(config: dict, output_dir: Path):
 
     prec = _detect_precision(tr.get("precision", "auto"))
 
-    # TF32 (matmul) em Ampere+ — ganho de velocidade sem efeito prático na métrica.
+    # TF32 (matmul) on Ampere+ — speed gain with no practical effect on metrics.
     if tr.get("tf32", True) and prec["tf32_supported"]:
         try:
             import torch
@@ -166,8 +166,8 @@ def build_training_arguments(config: dict, output_dir: Path):
     if tr.get("torch_compile", False):
         kwargs["torch_compile"] = True
 
-    # eval_strategy mudou de nome entre versões do transformers — tenta o novo,
-    # cai no antigo se necessário. Removemos chaves não suportadas se preciso.
+    # eval_strategy was renamed between transformers versions — try new name first,
+    # fall back to old if needed. Remove unsupported keys if required.
     eval_strategy = tr.get("eval_strategy", "epoch")
     save_strategy = tr.get("save_strategy", "epoch")
 
@@ -180,7 +180,7 @@ def build_training_arguments(config: dict, output_dir: Path):
     try:
         return _construct()
     except TypeError:
-        # Versão do transformers sem 'tf32'/'group_by_length'/'torch_compile' — remove e tenta de novo.
+        # Old transformers version without 'tf32'/'group_by_length'/'torch_compile' — remove and retry.
         for opt in ("tf32", "group_by_length", "torch_compile", "dataloader_pin_memory"):
             kwargs.pop(opt, None)
         return _construct()
@@ -205,7 +205,7 @@ def _build_callbacks(config: dict):
 # Focal Loss + Class Weights
 # ---------------------------------------------------------------------------
 def _compute_class_weights(labels_series, num_labels: int):
-    """Calcula class weights balanceados (sklearn) a partir dos rótulos de treino."""
+    """Computes balanced class weights (sklearn) from training labels."""
     import numpy as np
     from sklearn.utils.class_weight import compute_class_weight
 
@@ -216,11 +216,11 @@ def _compute_class_weights(labels_series, num_labels: int):
 
 
 class FocalLossTrainer:
-    """Mixin que sobrescreve ``compute_loss`` do Trainer com Focal Loss ou
-    Cross Entropy ponderado. NÃO herda do Trainer aqui — é combinado via
-    ``build_custom_trainer`` para evitar importação circular com torch."""
+    """Mixin that overrides ``compute_loss`` in Trainer with Focal Loss or
+    weighted Cross Entropy. Does NOT inherit from Trainer here — combined via
+    ``build_custom_trainer`` to avoid circular imports with torch."""
 
-    _class_weights = None   # tensor float, dtype=float32, device=model.device
+    _class_weights = None   # float tensor, dtype=float32, device=model.device
     _focal_gamma: float = 2.0
 
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
@@ -238,28 +238,28 @@ class FocalLossTrainer:
 
         if self._focal_gamma > 0:
             # Focal Loss: FL(p_t) = -(1-p_t)^gamma * log(p_t)
-            # com pesos de classe opcionais na CE base.
+            # with optional class weights on the base CE.
             ce = F.cross_entropy(logits, labels, weight=w, reduction="none")
             pt = torch.exp(-ce)
             focal = ((1 - pt) ** self._focal_gamma) * ce
             loss = focal.mean()
         else:
-            # Weighted Cross Entropy puro.
+            # Pure Weighted Cross Entropy.
             loss = F.cross_entropy(logits, labels, weight=w)
 
         return (loss, outputs) if return_outputs else loss
 
 
 def build_custom_trainer(use_focal: bool, use_class_weights: bool, gamma: float = 2.0):
-    """Retorna uma subclasse de ``Trainer`` configurada conforme os flags.
+    """Returns a ``Trainer`` subclass configured according to the flags.
 
-    Usamos factory function para manter a importação de torch/transformers
-    preguiçosa (o módulo train.py é importável sem GPU).
+    Uses a factory function to keep torch/transformers imports lazy
+    (train.py is importable without GPU).
     """
     from transformers import Trainer
 
     if not use_focal and not use_class_weights:
-        return Trainer  # sem modificação — comportamento padrão
+        return Trainer  # no modification — default behaviour
 
     class CustomTrainer(FocalLossTrainer, Trainer):
         pass
@@ -272,15 +272,15 @@ def build_custom_trainer(use_focal: bool, use_class_weights: bool, gamma: float 
 # Differential Learning Rates (Layer-wise LR Decay)
 # ---------------------------------------------------------------------------
 def build_optimizer_with_differential_lr(model, config: dict):
-    """AdamW com LR diferencial: camadas mais profundas usam LR maior.
+    """AdamW with differential LR: deeper layers use a higher LR.
 
-    Estratégia "layer-wise decay": cada camada recebe um LR igual a
-    ``base_lr * decay^(num_layers - layer_idx)``. Camadas de classificação
-    (pooler + head) ficam com o LR base; a camada de embedding fica com
-    ``base_lr * decay^num_layers`` (menor). Valores típicos: decay 0.9-0.95.
+    "Layer-wise decay" strategy: each layer receives an LR equal to
+    ``base_lr * decay^(num_layers - layer_idx)``. Classification layers
+    (pooler + head) keep the base LR; the embedding layer gets
+    ``base_lr * decay^num_layers`` (smallest). Typical values: decay 0.9-0.95.
 
-    Retorna ``None`` se differential_lr não estiver configurado (usa o
-    otimizador padrão do Trainer).
+    Returns ``None`` if differential_lr is not configured (uses Trainer's
+    default optimiser).
     """
     tr = config["train"]
     dlr = tr.get("differential_lr", {})
@@ -294,17 +294,17 @@ def build_optimizer_with_differential_lr(model, config: dict):
     decay = float(dlr.get("decay", 0.9))
     wd = float(tr.get("weight_decay", 0.01))
 
-    # Coleta camadas do encoder (BERT/RoBERTa têm model.encoder.layer)
+    # Collect encoder layers (BERT/RoBERTa have model.encoder.layer)
     encoder = getattr(model, "bert", None) or getattr(model, "roberta", None) or \
               getattr(model, "deberta", None) or getattr(model, "longformer", None)
 
     if encoder is None or not hasattr(encoder, "encoder"):
-        # Avisa explicitamente — differential_lr=true configurado mas não aplicado.
-        model_name = config.get("model", {}).get("name", "desconhecido")
+        # Explicit warning — differential_lr=true configured but not applied.
+        model_name = config.get("model", {}).get("name", "unknown")
         import warnings
         warnings.warn(
-            f"differential_lr ativado mas arquitetura não reconhecida para '{model_name}'. "
-            "LR uniforme será usado. Suporte: BERT/RoBERTa/DeBERTa/Longformer.",
+            f"differential_lr enabled but architecture not recognised for '{model_name}'. "
+            "Uniform LR will be used. Supported: BERT/RoBERTa/DeBERTa/Longformer.",
             UserWarning,
             stacklevel=2,
         )
@@ -314,20 +314,20 @@ def build_optimizer_with_differential_lr(model, config: dict):
     n = len(layers)
 
     groups = []
-    # Embeddings — LR mínimo
+    # Embeddings — minimum LR
     groups.append({
         "params": list(encoder.embeddings.parameters()),
         "lr": base_lr * (decay ** n),
         "weight_decay": wd,
     })
-    # Camadas do transformer — LR cresce da primeira à última
+    # Transformer layers — LR increases from first to last
     for i, layer in enumerate(layers):
         groups.append({
             "params": list(layer.parameters()),
             "lr": base_lr * (decay ** (n - i - 1)),
             "weight_decay": wd,
         })
-    # Pooler + classificador — LR base completo
+    # Pooler + classifier — full base LR
     head_params = []
     for name in ("pooler", "classifier", "pre_classifier"):
         m = getattr(model, name, None)
@@ -340,7 +340,7 @@ def build_optimizer_with_differential_lr(model, config: dict):
 
 
 def _to_hf_dataset(df, text_column: str, label_column: str):
-    """Converte um DataFrame em ``datasets.Dataset`` com colunas text/labels."""
+    """Converts a DataFrame to a ``datasets.Dataset`` with text/labels columns."""
     from datasets import Dataset
 
     keep = df[[text_column, label_column]].rename(columns={label_column: "labels"})
@@ -353,14 +353,14 @@ def train_experiment(
     splits: dict | None = None,
     max_steps: int | None = None,
 ) -> dict:
-    """Treina um experimento ponta a ponta e retorna o resumo (status dict).
+    """Trains an experiment end-to-end and returns the summary (status dict).
 
     Args:
-        config: config já mesclado (de ``load_config``).
-        paths: objeto :class:`ftr.env.Paths`.
-        splits: dicionário ``{"train": df, "val": df, "test": df}``; se ``None``,
-            carrega de ``data/processed``.
-        max_steps: se fornecido, limita os passos (modo smoke-test).
+        config: merged config (from ``load_config``).
+        paths: :class:`ftr.env.Paths` object.
+        splits: dict ``{"train": df, "val": df, "test": df}``; if ``None``,
+            loads from ``data/processed``.
+        max_steps: if provided, limits steps (smoke-test mode).
     """
     from transformers import DataCollatorWithPadding, Trainer
 
@@ -375,9 +375,9 @@ def train_experiment(
     timestamp = _now_stamp()
     exp: ExperimentDir = make_experiment_dir(paths.experiments, experiment_id, timestamp)
     logger = _setup_logger(exp.logs, experiment_id)
-    logger.info("=== Iniciando experimento %s (run %s) ===", experiment_id, exp.run_id)
+    logger.info("=== Starting experiment %s (run %s) ===", experiment_id, exp.run_id)
 
-    # Snapshot de config e ambiente.
+    # Config and environment snapshot.
     save_config_snapshot(config, exp.root / "config_snapshot.yaml")
     env = collect_environment(seed=config.get("seed", 42))
     exp.write_json("env.json", env)
@@ -397,23 +397,25 @@ def train_experiment(
 
     t0 = time.time()
     try:
-        # --- Dados ----------------------------------------------------------
+        # --- Data -----------------------------------------------------------
         if splits is None:
             splits = load_splits(paths.data_processed)
         if "train" not in splits or "test" not in splits:
             raise RuntimeError(
-                "Splits não encontrados. Rode scripts/01_prepare_data.py primeiro."
+                "Splits not found. Run scripts/01_prepare_data.py first."
             )
         text_column = config["data"]["text_column"]
         label_column = config["data"]["label_column"]
 
-        logger.info("Tamanhos: %s", {k: len(v) for k, v in splits.items()})
+        logger.info("Sizes: %s", {k: len(v) for k, v in splits.items()})
 
-        # --- Tokenizador / modelo ------------------------------------------
+        # --- Tokeniser / model ---------------------------------------------
         tokenizer = build_tokenizer(config)
         model = build_model(config)
+        is_longformer = config["model"].get("family", "encoder") == "longformer"
         tok_fn = make_tokenize_function(
-            tokenizer, text_column, config["tokenization"]["max_length"]
+            tokenizer, text_column, config["tokenization"]["max_length"],
+            set_global_attention_cls=is_longformer,
         )
 
         eval_split = "val" if "val" in splits else "test"
@@ -442,12 +444,12 @@ def train_experiment(
             cw = _compute_class_weights(splits["train"][label_column],
                                         config["labels"]["num_labels"])
             class_weights_tensor = torch.tensor(cw, dtype=torch.float32)
-            logger.info("Class weights calculados: %s", dict(enumerate(cw.round(3).tolist())))
+            logger.info("Class weights computed: %s", dict(enumerate(cw.round(3).tolist())))
 
         # --- Differential LR (opt-in via config) ----------------------------
         custom_optimizer = build_optimizer_with_differential_lr(model, config)
         if custom_optimizer is not None:
-            logger.info("Differential LR ativado (decay=%.2f)",
+            logger.info("Differential LR enabled (decay=%.2f)",
                         config["train"].get("differential_lr", {}).get("decay", 0.9))
 
         trainer = TrainerClass(
@@ -462,37 +464,37 @@ def train_experiment(
         )
         if class_weights_tensor is not None:
             trainer._class_weights = class_weights_tensor
-        try:  # transformers recente
+        try:  # recent transformers
             trainer.processing_class = tokenizer
         except Exception:
             trainer.tokenizer = tokenizer
 
-        # --- Treino (com retomada) -----------------------------------------
+        # --- Training (with resume) ----------------------------------------
         resume = config["train"].get("resume_from_checkpoint", False) and max_steps is None
         resume_arg = _find_checkpoint(exp.checkpoints) if resume else None
         if resume_arg:
-            logger.info("Retomando do checkpoint: %s", resume_arg)
+            logger.info("Resuming from checkpoint: %s", resume_arg)
         train_result = trainer.train(resume_from_checkpoint=resume_arg)
 
-        # Salva o melhor modelo + tokenizer.
+        # Save best model + tokenizer.
         best_dir = exp.root / "best_model"
         trainer.save_model(str(best_dir))
         tokenizer.save_pretrained(str(best_dir))
 
-        # --- Métricas por época (log_history) ------------------------------
+        # --- Per-epoch metrics (log_history) --------------------------------
         epoch_metrics = _extract_epoch_metrics(trainer.state.log_history)
         status["epoch_metrics"] = epoch_metrics
         exp.write_json("metrics/epoch_metrics.json", epoch_metrics)
         exp.write_json("trainer_log_history.json", trainer.state.log_history)
 
-        # --- Avaliação no conjunto de validação (rápida, via Trainer) ------
+        # --- Validation set evaluation (fast, via Trainer) ------------------
         val_eval = trainer.evaluate(ds_eval)
         exp.write_json("metrics/val_metrics_trainer.json", val_eval)
 
-        # --- Avaliação COMPLETA no teste -----------------------------------
-        # IMPORTANTE: usa um Trainer NOVO carregado do best_model, não o trainer
-        # de treino. O trainer de treino tem estado interno (sampler, buffers)
-        # que reordena os batches no predict(), desalinhando y_pred de y_true.
+        # --- Full evaluation on test set ------------------------------------
+        # IMPORTANT: uses a NEW Trainer loaded from best_model, not the training
+        # trainer. The training trainer has internal state (sampler, buffers)
+        # that reorders batches in predict(), misaligning y_pred from y_true.
         from .evaluate import evaluate_split, evaluate_from_dir
 
         test_metrics = evaluate_from_dir(exp.root, config, paths)
@@ -522,9 +524,9 @@ def train_experiment(
             }
         )
         exp.write_status(status)
-        logger.info("=== Concluído em %.1fs ===", duration)
+        logger.info("=== Completed in %.1fs ===", duration)
 
-    except Exception as e:  # noqa: BLE001 — registramos qualquer falha
+    except Exception as e:  # noqa: BLE001 — log any failure
         status.update(
             {
                 "status": "failed",
@@ -536,7 +538,7 @@ def train_experiment(
         )
         exp.write_status(status)
         if "logger" in dir():
-            logger.error("Falha no experimento: %s", e)
+            logger.error("Experiment failed: %s", e)
             logger.error(traceback.format_exc())
         raise
     finally:
@@ -546,7 +548,7 @@ def train_experiment(
 
 
 def _find_checkpoint(checkpoints_dir: Path) -> str | None:
-    """Encontra o último checkpoint salvo (para retomada)."""
+    """Finds the latest saved checkpoint (for resume)."""
     checkpoints_dir = Path(checkpoints_dir)
     if not checkpoints_dir.exists():
         return None
@@ -558,7 +560,7 @@ def _find_checkpoint(checkpoints_dir: Path) -> str | None:
 
 
 def _extract_epoch_metrics(log_history: list[dict]) -> list[dict]:
-    """Reúne, por época, as métricas de treino e avaliação do log_history."""
+    """Collects per-epoch training and evaluation metrics from log_history."""
     by_epoch: dict[float, dict] = {}
     for h in log_history:
         ep = h.get("epoch")

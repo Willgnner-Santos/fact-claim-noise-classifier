@@ -74,6 +74,7 @@ consolidated_all.json
 ```
 ├── Models_BERT/
 │   ├── configs/          # one YAML per encoder (7 models)
+│   ├── Notebooks/        # Colab setup, experiment template, ablation
 │   ├── scripts/          # 00_eda → 06_error_analysis + _bootstrap.py
 │   ├── src/ftr/          # data, anonymization, training, metrics, viz
 │   └── experiments/      # per-run: config, env.json, metrics/, figures/

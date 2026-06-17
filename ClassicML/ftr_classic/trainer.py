@@ -1,16 +1,16 @@
 """
-Pipeline de treino com K-Fold estratificado e avaliação no teste hold-out.
+Training pipeline with stratified K-Fold and hold-out test evaluation.
 
-Boas práticas implementadas:
-- StratifiedKFold (balanceamento de classes por fold)
-- Seed global fixa (Python, NumPy)
-- Vetorizador ajustado APENAS no fold de treino (sem data leakage)
-- Checkpoint do melhor modelo (por fold e global)
-- Logs detalhados por fold e por época
-- Métricas completas por fold + mean±std na consolidação
-- Gráficos PT-BR e EN salvos por experimento
-- env.json com versões de libs e hardware
-- status.json atualizado em tempo real (resiliente a falhas)
+Best practices implemented:
+- StratifiedKFold (per-class balance across folds)
+- Fixed global seed (Python, NumPy)
+- Vectorizer fitted ONLY on the training fold (no data leakage)
+- Checkpoint of the best model (per fold and overall)
+- Detailed per-fold logs
+- Full per-fold metrics + mean±std in consolidation
+- PT-BR and EN figures saved per experiment
+- env.json with library versions and hardware info
+- status.json updated in real time (resilient to failures)
 """
 from __future__ import annotations
 
@@ -110,7 +110,7 @@ def run_experiment(
     project_root: str | Path,
     experiments_root: str | Path | None = None,
 ) -> dict:
-    """Executa um experimento completo com K-Fold + avaliação no teste."""
+    """Run a full experiment with K-Fold + hold-out test evaluation."""
     from sklearn.model_selection import StratifiedKFold
     from . import viz
 
@@ -126,9 +126,9 @@ def run_experiment(
     exp_root = Path(experiments_root) if experiments_root else project_root / "ClassicML" / "experiments"
     exp_dir  = _make_exp_dir(exp_root, eid)
     lg = _setup_logger(exp_dir / "logs", eid)
-    lg.info("=== Iniciando %s ===", eid)
+    lg.info("=== Starting %s ===", eid)
 
-    # Salva config + env
+    # Save config + env
     (exp_dir / "config_snapshot.yaml").write_text(
         __import__("yaml").dump(config, allow_unicode=True), encoding="utf-8"
     )
@@ -150,9 +150,9 @@ def run_experiment(
         splits = get_splits(config, project_root)
         xy = get_xy(splits, config)
 
-        # Concatena treino + val para K-Fold (usa o mesmo conjunto de dados)
+        # Concatenate train + val for K-Fold (uses the same dataset)
         if "train" not in xy:
-            raise RuntimeError("Split 'train' não encontrado. Verifique os dados processados.")
+            raise RuntimeError("Split 'train' not found. Check the processed data.")
         X_trainval = xy["train"][0] + xy.get("val", ([], []))[0]
         y_trainval = xy["train"][1] + xy.get("val", ([], []))[1]
         X_test  = xy["test"][0] if "test" in xy else None
@@ -173,7 +173,7 @@ def run_experiment(
             X_val = [X_trainval[i] for i in val_idx]
             y_val = [y_trainval[i] for i in val_idx]
 
-            # Vetorizador ajustado APENAS no fold de treino
+            # Vectorizer fitted ONLY on the training fold
             vec = build_vectorizer(config)
             X_tr_vec  = vec.fit_transform(X_tr)
             X_val_vec = vec.transform(X_val)
@@ -191,7 +191,7 @@ def run_experiment(
             fold_dur = round(time.time() - fold_start, 1)
             lg.info("  Fold %d — f1_macro=%.4f  acc=%.4f  (%ds)", fold_idx+1, f1, fm["accuracy"], fold_dur)
 
-            # Checkpoint do melhor fold
+            # Checkpoint of the best fold
             ckpt = _save_checkpoint(model, vec, exp_dir, fold=fold_idx+1)
             fold_info.append({"fold": fold_idx+1, "f1_macro": f1, "checkpoint": ckpt,
                                "duration_seconds": fold_dur})
@@ -208,21 +208,21 @@ def run_experiment(
                 viz.plot_confusion_matrix(fm["confusion_matrix_normalized"], cn, fold_fig_dir, normalized=True, lang=lang)
                 viz.plot_f1_by_class(fm["per_class"], fold_fig_dir, lang=lang)
 
-        # Agrega K-Fold
+        # Aggregate K-Fold
         cv_agg = aggregate_cv_metrics(fold_metrics)
         f1_macro_mean = cv_agg["f1_macro"]["mean"]
         f1_macro_std  = cv_agg["f1_macro"]["std"]
-        lg.info("K-Fold resumo: f1_macro=%.4f ± %.4f", f1_macro_mean, f1_macro_std)
+        lg.info("K-Fold summary: f1_macro=%.4f ± %.4f", f1_macro_mean, f1_macro_std)
 
-        # Boxplot CV
+        # CV boxplot
         fold_f1s = [m["f1_macro"] for m in fold_metrics]
         for lang in config.get("viz", {}).get("languages", ["pt", "en"]):
             viz.plot_cv_boxplot(fold_f1s, eid, exp_dir / "figures", lang=lang)
 
-        # Avaliação no teste hold-out com o melhor modelo
+        # Evaluation on hold-out test set with the best model
         test_metrics = None
         if X_test and config["cv"].get("final_test_eval", True):
-            lg.info("Avaliando no teste hold-out com o melhor modelo...")
+            lg.info("Evaluating on hold-out test set with the best model...")
             with open(best_checkpoint, "rb") as f:
                 best = pickle.load(f)
             X_test_vec = best["vectorizer"].transform(X_test)
@@ -240,7 +240,7 @@ def run_experiment(
             lg.info("Teste — f1_macro=%.4f  acc=%.4f  mcc=%.4f",
                     test_metrics["f1_macro"], test_metrics["accuracy"], test_metrics["mcc"])
 
-            # Figuras do teste
+            # Test figures
             test_fig_dir = exp_dir / "figures" / "test"
             for lang in config.get("viz", {}).get("languages", ["pt", "en"]):
                 nm = CLASS_NAMES_PT if lang == "pt" else CLASS_NAMES_EN
@@ -254,7 +254,7 @@ def run_experiment(
                 if prob.get("pr_curves"):
                     viz.plot_pr_curves(prob["pr_curves"], test_fig_dir, lang=lang)
 
-        # Salva CV metrics
+        # Save CV metrics
         (exp_dir / "metrics" / "cv_metrics.json").write_text(
             json.dumps({"fold_metrics": [flatten_metrics(m) for m in fold_metrics],
                         "aggregated": cv_agg}, ensure_ascii=False, indent=2),
@@ -273,18 +273,18 @@ def run_experiment(
             "test_metrics": flatten_metrics(test_metrics) if test_metrics else None,
         })
         (exp_dir / "status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding="utf-8")
-        lg.info("=== Concluído em %.1fs ===", duration)
+        lg.info("=== Completed in %.1fs ===", duration)
 
     except Exception as e:
         status.update({"status": "failed", "finished_at": _now(),
                        "duration_seconds": round(time.time() - t0, 1),
                        "error": str(e), "traceback": traceback.format_exc()})
         (exp_dir / "status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding="utf-8")
-        lg.error("Falha: %s\n%s", e, traceback.format_exc())
+        lg.error("Failure: %s\n%s", e, traceback.format_exc())
         raise
 
     return status
 
 
-# Import das classes de nome de classe para viz
+# Import class-name mappings for viz
 from . import CLASS_NAMES_PT, CLASS_NAMES_EN

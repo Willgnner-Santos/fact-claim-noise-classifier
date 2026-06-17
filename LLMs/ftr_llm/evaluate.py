@@ -1,11 +1,11 @@
 """
-Avaliação completa: reutiliza src/ftr/metrics.py + análise por faixa de comprimento.
+Full evaluation: reuses src/ftr/metrics.py + analysis by document length range.
 
-Computa:
-  - Todas as métricas da planilha Métricas_Avaliação_Modelos.xlsx
-  - F1-Macro por faixa de comprimento (length_bin)
-  - Custo por ponto de F1 (eficiência)
-  - Consistência entre execuções (se múltiplos runs disponíveis)
+Computes:
+  - All metrics from the Métricas_Avaliação_Modelos.xlsx spreadsheet
+  - F1-Macro by document length range (length_bin)
+  - Cost per F1 point (efficiency)
+  - Consistency across runs (if multiple runs are available)
 """
 
 from __future__ import annotations
@@ -30,17 +30,17 @@ def evaluate_run(
     checkpoint_records: list[dict] | None = None,
 ) -> dict[str, Any]:
     """
-    Avaliação completa de um run.
+    Full evaluation of a run.
 
     Args:
-        y_true: labels verdadeiros
-        y_pred: labels preditos
-        checkpoint_records: lista de registros do JSONL (para análise por bin)
+        y_true: true labels
+        y_pred: predicted labels
+        checkpoint_records: list of JSONL records (for per-bin analysis)
     """
     metrics = compute_all_metrics(
         y_true=y_true,
         y_pred=y_pred,
-        y_proba=None,  # LLMs não retornam logits
+        y_proba=None,  # LLMs do not return logits
     )
 
     result: dict[str, Any] = {
@@ -50,7 +50,7 @@ def evaluate_run(
         "cost_efficiency": None,
     }
 
-    # --- Análise por faixa de comprimento ---
+    # --- Analysis by document length range ---
     if checkpoint_records:
         bin_records: dict[str, tuple[list, list]] = {}
         for rec in checkpoint_records:
@@ -84,7 +84,7 @@ def compute_cost_efficiency(
     total_cost_usd: float,
     n_docs: int,
 ) -> dict[str, float]:
-    """Custo por ponto de F1 e custo por 1k documentos."""
+    """Cost per F1 point and cost per 1k documents."""
     cost_per_1k = (total_cost_usd / max(n_docs, 1)) * 1000
     cost_per_f1_point = total_cost_usd / max(f1_macro, 0.001)
     return {

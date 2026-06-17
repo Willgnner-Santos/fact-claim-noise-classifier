@@ -1,12 +1,12 @@
 """
-Visualizações para os experimentos LLM — PT-BR e EN.
+Visualizations for LLM experiments — PT-BR and EN.
 
-Gráficos gerados:
-  1. Matriz de confusão (por modelo × estratégia)
-  2. F1-Macro por faixa de comprimento (heatmap)
-  3. Comparação de F1-Macro por modelo × estratégia (barras)
-  4. Custo vs. F1-Macro (scatter de eficiência)
-  5. F1 por classe (grouped bar)
+Generated plots:
+  1. Confusion matrix (per model x strategy)
+  2. F1-Macro by document length range (heatmap)
+  3. F1-Macro comparison per model x strategy (bars)
+  4. Cost vs. F1-Macro (efficiency scatter)
+  5. F1 per class (grouped bar)
 """
 
 from __future__ import annotations
@@ -23,23 +23,23 @@ import numpy as np
 
 
 # ---------------------------------------------------------------------------
-# Traduções PT-BR ↔ EN
+# PT-BR <-> EN label translations
 # ---------------------------------------------------------------------------
 _LABELS = {
     "pt": {
-        "confusion_matrix": "Matriz de Confusão",
-        "predicted": "Predito",
-        "true": "Real",
-        "f1_by_length": "F1-Macro por Faixa de Comprimento",
-        "length_bin": "Faixa (palavras)",
+        "confusion_matrix": "Confusion Matrix",
+        "predicted": "Predicted",
+        "true": "True",
+        "f1_by_length": "F1-Macro by Document Length Range",
+        "length_bin": "Length range (words)",
         "f1_macro": "F1-Macro",
-        "model": "Modelo",
-        "strategy": "Estratégia",
-        "f1_comparison": "Comparação F1-Macro — Modelos × Estratégias",
-        "cost_vs_f1": "Custo vs. F1-Macro (Eficiência)",
-        "cost_per_1k": "Custo por 1k docs (USD)",
-        "f1_per_class": "F1 por Classe",
-        "class": "Classe",
+        "model": "Model",
+        "strategy": "Strategy",
+        "f1_comparison": "F1-Macro Comparison — Models x Strategies",
+        "cost_vs_f1": "Cost vs. F1-Macro (Efficiency)",
+        "cost_per_1k": "Cost per 1k docs (USD)",
+        "f1_per_class": "F1 per Class",
+        "class": "Class",
     },
     "en": {
         "confusion_matrix": "Confusion Matrix",
@@ -73,7 +73,7 @@ def _save(fig, path: Path, dpi: int = 150) -> None:
 
 
 # ---------------------------------------------------------------------------
-# 1. Matriz de confusão
+# 1. Confusion matrix
 # ---------------------------------------------------------------------------
 def plot_confusion_matrix(
     cm: list[list[int]],
@@ -93,7 +93,7 @@ def plot_confusion_matrix(
         axes,
         [cm_arr, cm_norm],
         ["d", ".2f"],
-        ["(absoluta)", "(normalizada)"],
+        ["(absolute)", "(normalized)"],
     ):
         im = ax.imshow(data, interpolation="nearest", cmap="Blues")
         plt.colorbar(im, ax=ax)
@@ -116,7 +116,7 @@ def plot_confusion_matrix(
 
 
 # ---------------------------------------------------------------------------
-# 2. F1-Macro por faixa de comprimento
+# 2. F1-Macro by document length range
 # ---------------------------------------------------------------------------
 def plot_f1_by_length(
     by_bin: dict[str, dict],      # {bin_name: {f1_macro: float, n: int}}
@@ -154,7 +154,7 @@ def plot_f1_by_length(
 
 
 # ---------------------------------------------------------------------------
-# 3. Comparação F1-Macro — barras agrupadas
+# 3. F1-Macro comparison — grouped bars
 # ---------------------------------------------------------------------------
 def plot_f1_comparison(
     results: list[dict],  # [{model, strategy, f1_macro}]
@@ -193,7 +193,7 @@ def plot_f1_comparison(
 
 
 # ---------------------------------------------------------------------------
-# 4. Scatter custo vs F1-Macro (eficiência)
+# 4. Cost vs F1-Macro scatter (efficiency)
 # ---------------------------------------------------------------------------
 def plot_cost_vs_f1(
     results: list[dict],  # [{model, strategy, f1_macro, cost_per_1k_docs_usd}]
@@ -219,7 +219,7 @@ def plot_cost_vs_f1(
 
 
 # ---------------------------------------------------------------------------
-# 5. F1 por classe — barras agrupadas
+# 5. F1 per class — grouped bars
 # ---------------------------------------------------------------------------
 def plot_f1_per_class(
     results: list[dict],  # [{model, strategy, f1_tese, f1_fato, f1_ruido}]
@@ -250,39 +250,39 @@ def plot_f1_per_class(
 
 
 # ---------------------------------------------------------------------------
-# Orquestrador: gera todos os gráficos para um conjunto de resultados
+# Orchestrator: generates all plots for a set of results
 # ---------------------------------------------------------------------------
 def generate_all_plots(
     summary: list[dict],
     reports_dir: Path,
     dpi: int = 150,
 ) -> None:
-    """Gera todos os gráficos em PT e EN."""
+    """Generates all plots in PT and EN."""
     for lang in ("pt", "en"):
         lang_dir = reports_dir / f"plots_{lang}"
 
-        # Comparação global
+        # Global comparison
         plot_f1_comparison(
             summary,
             lang_dir / "f1_comparison.png",
             lang=lang, dpi=dpi,
         )
 
-        # Custo vs F1
+        # Cost vs F1
         plot_cost_vs_f1(
             summary,
             lang_dir / "cost_vs_f1.png",
             lang=lang, dpi=dpi,
         )
 
-        # F1 por classe
+        # F1 per class
         plot_f1_per_class(
             summary,
             lang_dir / "f1_per_class.png",
             lang=lang, dpi=dpi,
         )
 
-        # F1 por bin de comprimento — heatmap
+        # F1 by length bin — heatmap
         models_strategies = [f"{r['model']}|{r['strategy']}" for r in summary]
         matrix = {
             f"{r['model']}|{r['strategy']}": r.get("by_length_bin", {})

@@ -1,13 +1,13 @@
 """
-03_consolidate_results.py — Consolida todos os resultados em tabelas e gráficos finais.
+03_consolidate_results.py — Consolidates all results into tables and final plots.
 
-Lê todos os JSONs de resultados individuais e gera:
+Reads all individual result JSONs and generates:
   - results/summary_all.json
   - results/summary_all.csv
   - reports/plots_pt/ + reports/plots_en/
-  - Matriz de confusão por modelo × estratégia
+  - Confusion matrix per model x strategy
 
-Uso:
+Usage:
   python scripts/03_consolidate_results.py
 """
 
@@ -39,7 +39,7 @@ def main():
     reports_dir.mkdir(parents=True, exist_ok=True)
 
     result_files = sorted(results_dir.glob("*.json"))
-    logger.info("Encontrados %d arquivos de resultado", len(result_files))
+    logger.info("Found %d result files", len(result_files))
 
     all_summaries = []
     for rf in result_files:
@@ -50,19 +50,19 @@ def main():
             if summary:
                 all_summaries.append(summary)
         except Exception as e:
-            logger.warning("Erro ao ler %s: %s", rf.name, e)
+            logger.warning("Error reading %s: %s", rf.name, e)
 
     if not all_summaries:
-        logger.error("Nenhum resultado encontrado em %s", results_dir)
+        logger.error("No results found in %s", results_dir)
         return
 
-    # JSON consolidado
+    # Consolidated JSON
     out_json = results_dir / "summary_all.json"
     with open(out_json, "w", encoding="utf-8") as f:
         json.dump(all_summaries, f, ensure_ascii=False, indent=2)
-    logger.info("Summary consolidado: %s", out_json)
+    logger.info("Consolidated summary: %s", out_json)
 
-    # CSV consolidado
+    # Consolidated CSV
     try:
         import csv
         csv_path = results_dir / "summary_all.csv"
@@ -77,15 +77,15 @@ def main():
             writer = csv.DictWriter(cf, fieldnames=flat_cols, extrasaction="ignore")
             writer.writeheader()
             writer.writerows(all_summaries)
-        logger.info("CSV consolidado: %s", csv_path)
+        logger.info("Consolidated CSV: %s", csv_path)
     except Exception as e:
-        logger.warning("Não foi possível gerar CSV: %s", e)
+        logger.warning("Could not generate CSV: %s", e)
 
-    # Gráficos consolidados
-    logger.info("Gerando gráficos consolidados...")
+    # Consolidated plots
+    logger.info("Generating consolidated plots...")
     generate_all_plots(all_summaries, reports_dir, dpi=cfg["output"].get("dpi", 150))
 
-    # Matrizes de confusão individuais
+    # Individual confusion matrices
     ckpt_dir = Path(cfg["output"]["ckpt_dir"])
     for ckpt_file in sorted(ckpt_dir.glob("*.jsonl")):
         parts = ckpt_file.stem.split("__")
@@ -113,7 +113,7 @@ def main():
                 dpi=cfg["output"].get("dpi", 150),
             )
 
-    logger.info("Consolidação concluída. Gráficos em: %s", reports_dir)
+    logger.info("Consolidation complete. Plots at: %s", reports_dir)
 
 
 if __name__ == "__main__":

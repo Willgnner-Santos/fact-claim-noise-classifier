@@ -1,4 +1,4 @@
-"""Consolida resultados de todos os experimentos em tabela comparativa."""
+"""Consolidate results from all experiments into a comparative table."""
 from __future__ import annotations
 import json, glob, sys
 from pathlib import Path
@@ -42,7 +42,7 @@ def consolidate(classic_root: Path | None = None):
         rows.append(row)
 
     if not rows:
-        print("Nenhum experimento concluído encontrado.")
+        print("No completed experiments found.")
         return
 
     import pandas as pd
@@ -55,14 +55,14 @@ def consolidate(classic_root: Path | None = None):
     print(f"Tabela salva em {results_dir / 'comparison_table.csv'}")
     print(df[["experiment_id","f1_macro_mean","f1_macro_std","test_f1_macro"]].to_string(index=False))
 
-    # Gráfico comparativo PT e EN
+    # Comparative chart PT and EN
     sys.path.insert(0, str(ROOT))
     from ftr_classic.viz import plot_comparison
     result_list = rows
     fig_dir = results_dir / "figures"
     for lang in ("pt", "en"):
         plot_comparison(result_list, fig_dir, lang=lang)
-    print(f"Gráficos em {fig_dir}")
+    print(f"Figures at {fig_dir}")
 
 
 if __name__ == "__main__":

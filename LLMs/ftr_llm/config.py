@@ -1,4 +1,4 @@
-"""Carrega e valida configs YAML dos experimentos LLM."""
+"""Loads and validates YAML configs for LLM experiments."""
 
 from __future__ import annotations
 
@@ -40,6 +40,6 @@ def load_model_registry(path: str | Path) -> dict[str, Any]:
 
 
 def get_invoke_field(model_entry: dict) -> tuple[str, str]:
-    """Retorna (field_name, value) para invocar o modelo via Bedrock Converse."""
+    """Returns (field_name, value) to invoke the model via Bedrock Converse."""
     iw = model_entry["invokeWith"]
     return iw["field"], iw["value"]

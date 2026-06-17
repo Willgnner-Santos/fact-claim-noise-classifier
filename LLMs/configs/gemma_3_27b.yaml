@@ -1,14 +1,14 @@
-# Gemma 3 27B — tier: bom
+# Gemma 3 27B — tier: good
 _base: "_base_llm.yaml"
 
 model:
   alias: "gemma_3_27b"
   display_name: "Gemma 3 27B"
-  tier: "bom"
-  provider: "bom"
+  tier: "good"
+  provider: "good"
 
 experiment:
-  # Modelos caros (elite/top): só no test set, 1 estratégia principal
-  # Modelos baratos (leve/bom): todas as estratégias no dev e test
+  # Expensive models (elite/top): test set only, 1 main strategy
+  # Cheap models (light/good): all strategies on dev and test
   strategies: ["zero_shot", "few_shot", "evidence_constrained", "decomposed"]
   delay_between_calls: 0.5

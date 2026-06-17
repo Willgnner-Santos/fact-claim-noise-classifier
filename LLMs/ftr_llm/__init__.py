@@ -1,7 +1,7 @@
 """
-ftr_llm — pipeline LLM para classificação jurídica Fato/Tese/Ruído.
+ftr_llm — LLM pipeline for legal classification Fato/Tese/Ruído.
 
-Labels canônicos (idem src/ftr):  0=tese  1=fato  2=ruido
+Canonical labels (same as src/ftr):  0=tese  1=fato  2=ruido
 """
 
 ID2LABEL = {0: "tese", 1: "fato", 2: "ruido"}

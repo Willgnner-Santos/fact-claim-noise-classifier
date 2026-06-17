@@ -1,21 +1,21 @@
 """
-02_run_experiment.py — Roda um experimento: 1 modelo × N estratégias × 1 split.
+02_run_experiment.py — Runs an experiment: 1 model x N strategies x 1 split.
 
-Suporta:
-  --sample-n N    : usa só N exemplos do split (validação rápida do pipeline)
-  --strategies    : subconjunto de estratégias
-  --split         : "val" para desenvolvimento, "test" para avaliação final
-  --resume        : retoma checkpoint automaticamente (padrão)
-  --no-smoke-test : pula smoke test (útil se já testou antes)
+Supports:
+  --sample-n N    : uses only N examples from the split (fast pipeline validation)
+  --strategies    : strategy subset
+  --split         : "val" for development, "test" for final evaluation
+  --resume        : automatically resumes from checkpoint (default)
+  --no-smoke-test : skips smoke test (useful if already tested)
 
-Exemplos:
-  # Validação rápida com 30 exemplos
+Examples:
+  # Fast validation with 30 examples
   python scripts/02_run_experiment.py --model claude_3_haiku --sample-n 30
 
-  # Rodar todas as estratégias no test set
+  # Run all strategies on the test set
   python scripts/02_run_experiment.py --model claude_3_haiku --split test
 
-  # Só zero_shot e few_shot
+  # Only zero_shot and few_shot
   python scripts/02_run_experiment.py --model qwen3_32b --strategies zero_shot few_shot
 """
 
@@ -61,14 +61,14 @@ def get_client_and_invoke(model_alias: str, registry: dict, cfg: dict):
     if model_alias == "sabia4":
         api_key = os.environ.get("API_KEY_MARITACA", "")
         if not api_key:
-            raise ValueError("API_KEY_MARITACA não encontrada no .env")
+            raise ValueError("API_KEY_MARITACA not found in .env")
         client = MaritacaClient(api_key=api_key)
         return client, "invoke_maritaca", "sabia-4"
 
     models = registry.get("rankingGeneralPurpose", [])
     entry = next((m for m in models if m["alias"] == model_alias), None)
     if entry is None:
-        raise ValueError(f"Alias não encontrado: {model_alias!r}. Verifique bedrock_modelos_refatorado.json")
+        raise ValueError(f"Alias not found: {model_alias!r}. Check bedrock_modelos_refatorado.json")
 
     field, value = get_invoke_field(entry)
     fallback_alias = cfg.get("fallback_model_alias", "claude_3_haiku")
@@ -81,17 +81,17 @@ def get_client_and_invoke(model_alias: str, registry: dict, cfg: dict):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Roda experimento LLM")
-    parser.add_argument("--model", required=True, help="Alias do modelo (ex: claude_3_haiku)")
+    parser = argparse.ArgumentParser(description="Run LLM experiment")
+    parser.add_argument("--model", required=True, help="Model alias (e.g.: claude_3_haiku)")
     parser.add_argument("--config", default=str(_ROOT / "configs" / "_base_llm.yaml"))
     parser.add_argument("--split", default="val", choices=["train", "val", "test"])
     parser.add_argument("--strategies", nargs="+", default=None, choices=ALL_STRATEGIES + ["all"])
     parser.add_argument("--sample-n", type=int, default=None,
-                        help="Usa só N exemplos do split (validação rápida). None = todos.")
+                        help="Use only N examples from the split (fast validation). None = all.")
     parser.add_argument("--no-smoke-test", action="store_true")
-    parser.add_argument("--delay", type=float, default=None, help="Delay entre chamadas (seg)")
+    parser.add_argument("--delay", type=float, default=None, help="Delay between calls (sec)")
     parser.add_argument("--concurrency", type=int, default=None,
-                        help="Chamadas concorrentes (padrão: config; 1=sequencial)")
+                        help="Concurrent calls (default: config; 1=sequential)")
     args = parser.parse_args()
 
     cfg = load_config(args.config)
@@ -105,7 +105,7 @@ def main():
     records = splits[args.split]
 
     if args.sample_n:
-        # Amostra estratificada por label para não perder classes
+        # Stratified sample by label to preserve all classes
         import random
         random.seed(cfg.get("seed", 42))
         from collections import defaultdict
@@ -117,7 +117,7 @@ def main():
         for label_recs in by_label.values():
             records.extend(random.sample(label_recs, min(per_class, len(label_recs))))
         random.shuffle(records)
-        logger.info("Modo amostra: %d registros (--sample-n %d)", len(records), args.sample_n)
+        logger.info("Sample mode: %d records (--sample-n %d)", len(records), args.sample_n)
 
     strategies = args.strategies or cfg.get("experiment", {}).get("strategies", ALL_STRATEGIES)
     if "all" in strategies:
@@ -126,7 +126,7 @@ def main():
     exp_cfg = cfg.get("experiment", {})
     delay = args.delay if args.delay is not None else exp_cfg.get("delay_between_calls", 0.5)
     concurrency = args.concurrency if args.concurrency is not None else exp_cfg.get("concurrency", 5)
-    # Para amostras pequenas, limita concorrência para não disparar mais slots que registros por classe
+    # For small samples, limit concurrency to avoid firing more slots than records per class
     if args.sample_n:
         concurrency = min(concurrency, max(1, args.sample_n // 3))
 
@@ -140,9 +140,9 @@ def main():
     all_results = []
     for strategy in strategies:
         logger.info("=" * 60)
-        logger.info("Modelo: %s | Estratégia: %s | Split: %s", args.model, strategy, args.split)
+        logger.info("Model: %s | Strategy: %s | Split: %s", args.model, strategy, args.split)
         if args.sample_n:
-            logger.info("  [AMOSTRA: %d exemplos — não é avaliação final]", len(records))
+            logger.info("  [SAMPLE: %d examples — not a final evaluation]", len(records))
         logger.info("=" * 60)
 
         run_kwargs = dict(
@@ -160,19 +160,19 @@ def main():
             smoke_test=not args.no_smoke_test,
         )
         if concurrency > 1:
-            logger.info("Modo async — concorrência: %d", concurrency)
+            logger.info("Async mode — concurrency: %d", concurrency)
             run_result = asyncio.run(
                 run_experiment_async(**run_kwargs, concurrency=concurrency)
             )
         else:
-            logger.info("Modo sequencial (concurrency=1)")
+            logger.info("Sequential mode (concurrency=1)")
             run_result = run_experiment(**run_kwargs)
 
         if not run_result.get("ok"):
-            logger.error("Experimento falhou: %s", run_result.get("error"))
+            logger.error("Experiment failed: %s", run_result.get("error"))
             continue
 
-        # Avaliação
+        # Evaluation
         ckpt_records = load_checkpoint_records(run_result["checkpoint_file"])
         eval_result = evaluate_run(
             run_result["y_true"],
@@ -208,7 +208,7 @@ def main():
         }
         all_results.append(summary_entry)
 
-        # Salva resultado individual
+        # Save individual result
         out_file = results_dir / f"{args.model}__{strategy}__{args.split}.json"
         with open(out_file, "w", encoding="utf-8") as f:
             json.dump({
@@ -217,23 +217,23 @@ def main():
             }, f, ensure_ascii=False, indent=2)
 
         logger.info(
-            "F1-Macro: %.4f | Custo: $%.4f | Parse failures: %.1f%%",
+            "F1-Macro: %.4f | Cost: $%.4f | Parse failures: %.1f%%",
             summary_entry["f1_macro"],
             summary_entry["total_cost_usd"],
             summary_entry["parse_failure_rate"] * 100,
         )
-        logger.info("Resultado salvo: %s", out_file)
+        logger.info("Result saved: %s", out_file)
 
-        # Após smoke test / amostra, NÃO gera gráficos individuais — só no consolidado
-        args.no_smoke_test = True  # Só testa uma vez por execução
+        # After smoke test / sample, do NOT generate individual plots — only in consolidated
+        args.no_smoke_test = True  # Only test once per run
 
-    # Gráficos se houver resultados suficientes
+    # Generate plots if there are enough results
     if all_results:
-        logger.info("Gerando gráficos...")
+        logger.info("Generating plots...")
         generate_all_plots(all_results, reports_dir, dpi=cfg["output"].get("dpi", 150))
-        logger.info("Gráficos salvos em: %s", reports_dir)
+        logger.info("Plots saved to: %s", reports_dir)
 
-    logger.info("Custo total da sessão: $%.4f", client.cost_summary()["total_cost_usd"])
+    logger.info("Total session cost: $%.4f", client.cost_summary()["total_cost_usd"])
 
 
 if __name__ == "__main__":

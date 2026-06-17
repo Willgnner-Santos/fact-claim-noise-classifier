@@ -1,4 +1,4 @@
-"""Carregamento de configs YAML com herança de _base.yaml."""
+"""Load YAML configs with inheritance from _base.yaml."""
 from __future__ import annotations
 import copy
 from pathlib import Path

@@ -1,4 +1,4 @@
-"""Gráficos PT-BR e EN para o pipeline ClassicML."""
+"""PT-BR and EN figures for the ClassicML pipeline."""
 from __future__ import annotations
 import matplotlib
 matplotlib.use("Agg")
@@ -107,7 +107,7 @@ def plot_cv_boxplot(fold_f1s: list[float], experiment_id: str, out_dir: Path,
 
 
 def plot_comparison(results: list[dict], out_dir: Path, lang="pt", dpi=150, fmt="png") -> str:
-    """Gráfico comparativo: mean ± std do f1_macro entre todos os modelos."""
+    """Comparison chart: mean ± std of f1_macro across all models."""
     t = _T[lang]
     results = sorted(results, key=lambda r: r.get("f1_macro_mean", 0), reverse=True)
     names   = [r["experiment_id"] for r in results]
@@ -158,7 +158,7 @@ def plot_pr_curves(pr_curves: dict, out_dir: Path, lang="pt", dpi=150, fmt="png"
         ap = data.get("ap", 0)
         ax.plot(data["recall"], data["precision"], color=color, label=f"{cls_label} (AP={ap:.3f})")
     ax.set_xlabel(t["pr"].split()[1] if lang == "en" else "Recall")
-    ax.set_ylabel("Precision" if lang == "en" else "Precisão")
+    ax.set_ylabel("Precision")
     ax.set_title(t["pr"]); ax.legend(loc="upper right")
     fig.tight_layout()
     return _savefig(fig, out_dir / f"pr_curves_{lang}.{fmt}", dpi, fmt)

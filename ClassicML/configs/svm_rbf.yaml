@@ -1,5 +1,5 @@
 experiment_id: "svm_rbf"
-description: "SVM RBF — kernel não-linear"
+description: "SVM RBF — non-linear kernel"
 model:
   name: "SVC"
   family: "svm"

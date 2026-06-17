@@ -1,8 +1,8 @@
 """
-Vetorização TF-IDF para os modelos clássicos.
+TF-IDF vectorization for classical models.
 
-Ajustado apenas no treino, aplicado consistentemente em val/teste — sem
-vazamento de informação do teste para o vetorizador.
+Fitted only on training data, applied consistently to val/test — no
+information leakage from the test set into the vectorizer.
 """
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 
 
 def build_vectorizer(config: dict):
-    """Instancia o vetorizador conforme o config."""
+    """Instantiate the vectorizer according to the config."""
     vc = config.get("vectorizer", {})
     vtype = vc.get("type", "tfidf")
 
@@ -27,4 +27,4 @@ def build_vectorizer(config: dict):
         return TfidfVectorizer(**params)
     if vtype == "count":
         return CountVectorizer(**params)
-    raise ValueError(f"Tipo de vetorizador desconhecido: {vtype}")
+    raise ValueError(f"Unknown vectorizer type: {vtype}")

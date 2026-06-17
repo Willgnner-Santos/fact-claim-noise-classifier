@@ -1,18 +1,18 @@
 """
-Tokenização: truncação simples (fiel) e janela deslizante (long-context).
+Tokenisation: simple truncation (faithful) and sliding window (long-context).
 
-Duas estratégias controladas pelo config (``tokenization.long_text_strategy``):
+Two strategies controlled by config (``tokenization.long_text_strategy``):
 
-* ``"truncate"`` — comportamento dos notebooks originais: ``truncation=True``
-  com ``max_length`` (512). Rápido; perde o que excede o limite.
-* ``"sliding_window"`` — divide o texto em janelas sobrepostas (stride
-  configurável); usado na **inferência** para agregar predições de documentos
-  longos (média/máximo/voto sobre as janelas). Para o treino mantemos truncação
-  (compatível com o ``Trainer``); a janela deslizante entra na avaliação como
-  melhoria documentada.
+* ``"truncate"`` — original notebook behaviour: ``truncation=True``
+  with ``max_length`` (512). Fast; discards text beyond the limit.
+* ``"sliding_window"`` — splits text into overlapping windows (configurable
+  stride); used at **inference** to aggregate predictions over long documents
+  (mean/max/vote across windows). Training uses truncation
+  (compatible with ``Trainer``); sliding window is applied at evaluation as
+  a documented improvement.
 
-A função :func:`make_tokenize_function` devolve o ``preprocess_function`` usado
-no ``dataset.map(..., batched=True)`` dos originais.
+The :func:`make_tokenize_function` function returns the ``preprocess_function``
+used in the original ``dataset.map(..., batched=True)`` calls.
 """
 
 from __future__ import annotations
@@ -22,15 +22,33 @@ from typing import Callable
 import numpy as np
 
 
-def make_tokenize_function(tokenizer, text_column: str, max_length: int) -> Callable:
-    """Cria a função de tokenização para ``Dataset.map(batched=True)``."""
+def make_tokenize_function(
+    tokenizer,
+    text_column: str,
+    max_length: int,
+    set_global_attention_cls: bool = False,
+) -> Callable:
+    """Creates the tokenisation function for ``Dataset.map(batched=True)``.
+
+    ``set_global_attention_cls=True`` enables global attention on the ``[CLS]``
+    token (position 0) for Longformer — required for sequence classification.
+    Without it, ``[CLS]`` only receives local attention and classification
+    pooling degrades significantly.
+    """
 
     def _tok(batch):
-        return tokenizer(
+        enc = tokenizer(
             batch[text_column],
             truncation=True,
             max_length=max_length,
         )
+        if set_global_attention_cls:
+            # global_attention_mask: 1 = global attention, 0 = local attention.
+            # [CLS] (pos 0) must see the full document for classification.
+            enc["global_attention_mask"] = [
+                [1] + [0] * (len(ids) - 1) for ids in enc["input_ids"]
+            ]
+        return enc
 
     return _tok
 
@@ -41,10 +59,10 @@ def sliding_window_encode(
     max_length: int,
     stride: int = 128,
 ):
-    """Codifica um texto em janelas sobrepostas (para inferência long-context).
+    """Encodes a text into overlapping windows (for long-context inference).
 
-    Retorna um ``BatchEncoding`` com múltiplas janelas (uma linha por janela),
-    usando o ``return_overflowing_tokens`` do tokenizer fast.
+    Returns a ``BatchEncoding`` with multiple windows (one row per window),
+    using the fast tokenizer's ``return_overflowing_tokens``.
     """
     return tokenizer(
         text,
@@ -58,15 +76,15 @@ def sliding_window_encode(
 
 
 def aggregate_window_logits(window_logits: np.ndarray, method: str = "mean") -> np.ndarray:
-    """Agrega logits/probas de várias janelas de um mesmo documento.
+    """Aggregates logits/probas from multiple windows of the same document.
 
     Args:
         window_logits: array ``(n_windows, n_classes)``.
-        method: ``"mean"`` (média), ``"max"`` (máximo por classe) ou ``"vote"``
-            (voto majoritário das janelas).
+        method: ``"mean"`` (average), ``"max"`` (per-class maximum), or ``"vote"``
+            (majority vote across windows).
 
     Returns:
-        Vetor ``(n_classes,)`` agregado.
+        Aggregated vector ``(n_classes,)``.
     """
     window_logits = np.asarray(window_logits, dtype=float)
     if window_logits.ndim == 1:
@@ -79,9 +97,9 @@ def aggregate_window_logits(window_logits: np.ndarray, method: str = "mean") -> 
         preds = window_logits.argmax(axis=1)
         n_classes = window_logits.shape[1]
         counts = np.bincount(preds, minlength=n_classes)
-        # devolve um "logit" one-hot suave proporcional aos votos
+        # returns a soft one-hot "logit" proportional to vote counts
         return counts.astype(float)
-    raise ValueError(f"Método de agregação desconhecido: {method}")
+    raise ValueError(f"Unknown aggregation method: {method}")
 
 
 def predict_long_text(
@@ -92,9 +110,9 @@ def predict_long_text(
     stride: int = 128,
     aggregation: str = "mean",
 ):
-    """Prediz a classe de um texto longo via janela deslizante + agregação.
+    """Predicts the class of a long text via sliding window + aggregation.
 
-    Usado na avaliação long-context. Requer torch + modelo carregado.
+    Used for long-context evaluation. Requires torch and a loaded model.
     """
     import torch
 
@@ -105,13 +123,13 @@ def predict_long_text(
     with torch.no_grad():
         out = model(**inputs)
     logits = out.logits.detach().cpu().numpy()  # (n_windows, n_classes)
-    # softmax por janela antes de agregar probabilidades
+    # softmax per window before aggregating probabilities
     z = logits - logits.max(axis=1, keepdims=True)
     proba = np.exp(z)
     proba /= proba.sum(axis=1, keepdims=True)
     agg = aggregate_window_logits(proba, method=aggregation)
-    # "vote" retorna contagens — normaliza para distribuição de probabilidade.
-    # "mean"/"max" já são distribuições de probabilidade (softmax aplicado acima).
+    # "vote" returns counts — normalise to probability distribution.
+    # "mean"/"max" are already probability distributions (softmax applied above).
     if aggregation == "vote":
         total = agg.sum()
         agg = agg / total if total > 0 else np.ones_like(agg) / len(agg)

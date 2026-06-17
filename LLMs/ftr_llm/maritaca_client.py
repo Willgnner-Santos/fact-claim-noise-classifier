@@ -1,8 +1,8 @@
 """
-Cliente para Maritaca AI (Sabiá-4) via API REST direta.
+Client for Maritaca AI (Sabiá-4) via direct REST API.
 
-A Maritaca não está no Bedrock — usa endpoint próprio.
-Interface idêntica ao BedrockClient para o runner não precisar saber a diferença.
+Maritaca is not on Bedrock — uses its own endpoint.
+Interface identical to BedrockClient so the runner does not need to know the difference.
 """
 
 from __future__ import annotations
@@ -18,8 +18,8 @@ from typing import Any
 logger = logging.getLogger("ftr_llm.maritaca")
 
 MARITACA_API_URL = "https://chat.maritaca.ai/api/chat/completions"
-MARITACA_MODEL_ID = "sabia-4"  # nome exato na API Maritaca
-MARITACA_PRICE = {"input": 0.50, "output": 1.50}  # USD / 1M tokens (estimativa)
+MARITACA_MODEL_ID = "sabia-4"  # exact name in the Maritaca API
+MARITACA_PRICE = {"input": 0.50, "output": 1.50}  # USD / 1M tokens (estimate)
 
 
 @dataclass
@@ -36,7 +36,7 @@ class CallResult:
 
 
 class MaritacaClient:
-    """Cliente REST para Sabiá-4 (Maritaca AI)."""
+    """REST client for Sabiá-4 (Maritaca AI)."""
 
     def __init__(
         self,
@@ -114,8 +114,8 @@ class MaritacaClient:
 
     def call(
         self,
-        invoke_field: str,  # ignorado — compatibilidade com BedrockClient
-        invoke_value: str,  # ignorado
+        invoke_field: str,  # ignored — compatibility with BedrockClient
+        invoke_value: str,  # ignored
         system_prompt: str,
         user_message: str,
         max_tokens: int = 512,
@@ -127,7 +127,7 @@ class MaritacaClient:
                 return self._call_once(system_prompt, user_message, max_tokens, temperature)
             except Exception as e:
                 last_error = str(e)
-                logger.warning("Maritaca tentativa %d/%d falhou: %s", attempt + 1, self.max_retries + 1, last_error[:120])
+                logger.warning("Maritaca attempt %d/%d failed: %s", attempt + 1, self.max_retries + 1, last_error[:120])
                 delay = self.base_delay * (2 ** attempt) + random.uniform(0, 1)
                 time.sleep(delay)
 
@@ -138,7 +138,7 @@ class MaritacaClient:
         )
 
     def smoke_test(self, invoke_field: str = "", invoke_value: str = "") -> bool:
-        result = self.call("", "", "", "Responda apenas com: oi", max_tokens=10)
+        result = self.call("", "", "", "Reply only with: hi", max_tokens=10)
         ok = result.ok and bool(result.text.strip())
         logger.info("Smoke test Sabiá-4: %s (latency=%.0fms)", "OK" if ok else "FAIL", result.latency_ms)
         return ok
@@ -152,7 +152,7 @@ class MaritacaClient:
         max_tokens: int = 512,
         temperature: float = 0.0,
     ) -> CallResult:
-        """Versão async de call() — executa o HTTP síncrono em thread pool."""
+        """Async version of call() — runs the synchronous HTTP call in a thread pool."""
         return await asyncio.to_thread(
             self.call,
             invoke_field, invoke_value,

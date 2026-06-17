@@ -1,12 +1,12 @@
 """
-Runner principal: itera sobre o dataset, chama o LLM, salva checkpoints e métricas.
+Main runner: iterates over the dataset, calls the LLM, saves checkpoints and metrics.
 
-Suporta:
-  - Retomada de checkpoint (--resume automático)
-  - Rate limiting (delay entre chamadas)
-  - Logging de custo acumulado
-  - Smoke-test antes de iniciar
-  - Saída em JSONL de checkpoint + JSON de resultados finais
+Supports:
+  - Checkpoint resumption (automatic --resume)
+  - Rate limiting (delay between calls)
+  - Accumulated cost logging
+  - Smoke-test before starting
+  - Checkpoint JSONL output + final results JSON
 """
 
 from __future__ import annotations
@@ -39,38 +39,38 @@ def run_experiment(
     invoke_value: str,
     strategy: str,
     split: str,
-    client,                         # BedrockClient ou MaritacaClient
+    client,                         # BedrockClient or MaritacaClient
     ckpt_dir: Path,
     max_tokens: int = 512,
     temperature: float = 0.0,
     delay_between_calls: float = 0.3,
     smoke_test: bool = True,
-    max_parse_failures_pct: float = 0.20,  # aborta se >20% de falhas de parse
+    max_parse_failures_pct: float = 0.20,  # aborts if >20% parse failures
 ) -> dict[str, Any]:
     """
-    Roda um experimento completo (modelo × estratégia × split).
+    Runs a complete experiment (model x strategy x split).
 
     Returns:
-        dict com y_true, y_pred, métricas brutas, custo e metadados.
+        dict with y_true, y_pred, raw metrics, cost and metadata.
     """
     # --- Smoke test ---
     if smoke_test:
         ok = client.smoke_test(invoke_field, invoke_value)
         if not ok:
-            logger.error("Smoke test falhou para %s. Abortando.", model_alias)
+            logger.error("Smoke test failed for %s. Aborting.", model_alias)
             return {"ok": False, "error": "smoke_test_failed", "model": model_alias}
 
-    # --- Carrega checkpoint ---
+    # --- Load checkpoint ---
     ckpt_file = checkpoint_path(ckpt_dir, model_alias, strategy, split)
     done = load_checkpoint(ckpt_file)
     n_total = len(records)
     n_done = len(done)
     logger.info(
-        "Experimento %s × %s × %s: %d/%d já processados",
+        "Experiment %s x %s x %s: %d/%d already processed",
         model_alias, strategy, split, n_done, n_total
     )
 
-    # --- Loop principal ---
+    # --- Main loop ---
     parse_failures = 0
     for idx, record in enumerate(records):
         if idx in done:
@@ -88,7 +88,7 @@ def run_experiment(
                 temperature=temperature,
             )
         except Exception as e:
-            logger.warning("Erro na chamada idx=%d: %s", idx, str(e)[:120])
+            logger.warning("Error in call idx=%d: %s", idx, str(e)[:120])
             ckpt_rec = {
                 "idx": idx, "label": true_label, "pred": None,
                 "parse_ok": False, "error": str(e),
@@ -142,12 +142,12 @@ def run_experiment(
             }
             append_record(ckpt_file, ckpt_rec)
 
-        # Progress log a cada 100
+        # Progress log every 100
         processed_now = idx + 1
         if processed_now % 100 == 0 or processed_now == n_total:
             cost_so_far = client.cost_summary()["total_cost_usd"]
             logger.info(
-                "[%s|%s|%s] %d/%d — custo acum.: $%.4f — falhas parse: %d",
+                "[%s|%s|%s] %d/%d — accum. cost: $%.4f — parse failures: %d",
                 model_alias, strategy, split,
                 processed_now, n_total,
                 cost_so_far, parse_failures,
@@ -157,18 +157,18 @@ def run_experiment(
         if delay_between_calls > 0:
             time.sleep(delay_between_calls)
 
-        # Aborta se muitas falhas
+        # Abort if too many failures
         n_processed = idx + 1 - len([i for i in range(idx + 1) if i in done])
         if n_processed >= 50:
             fail_pct = parse_failures / n_processed
             if fail_pct > max_parse_failures_pct:
                 logger.error(
-                    "Abortando: %.0f%% de falhas de parse (limite %.0f%%)",
+                    "Aborting: %.0f%% parse failures (limit %.0f%%)",
                     fail_pct * 100, max_parse_failures_pct * 100
                 )
                 return {"ok": False, "error": "too_many_parse_failures", "model": model_alias}
 
-    # --- Monta resultado final ---
+    # --- Build final result ---
     done_final = load_checkpoint(ckpt_file)
     y_true, y_pred, failed_idxs = checkpoint_to_lists(done_final, n_total)
 
@@ -189,14 +189,14 @@ def run_experiment(
 
 
 # ---------------------------------------------------------------------------
-# Runner assíncrono — paralelismo controlado por Semaphore
+# Async runner — parallelism controlled by Semaphore
 # ---------------------------------------------------------------------------
 
 def _build_ckpt_record(
     idx: int, record: dict, model_alias: str, strategy: str,
     result=None, parsed=None, error: str | None = None,
 ) -> dict:
-    """Monta o dict de checkpoint — centraliza para não duplicar entre sync/async."""
+    """Builds the checkpoint dict — centralised to avoid duplication between sync/async."""
     base = {
         "idx": idx,
         "label": record["label"],
@@ -245,12 +245,12 @@ async def _process_one(
     client,
     ckpt_file: Path,
     semaphore: asyncio.Semaphore,
-    progress: dict,           # {"done": int, "failures": int} — compartilhado
+    progress: dict,           # {"done": int, "failures": int} — shared
     max_tokens: int,
     temperature: float,
     min_delay: float,
 ) -> None:
-    """Processa uma instância com controle de concorrência."""
+    """Processes one instance with concurrency control."""
     async with semaphore:
         system_prompt, user_message = build_prompt(strategy, record["text"])
         t0 = time.perf_counter()
@@ -282,7 +282,7 @@ async def _process_one(
         await async_append_record(ckpt_file, ckpt_rec)
         progress["done"] += 1
 
-        # Delay mínimo respeitado por slot (não bloqueia os outros slots)
+        # Minimum delay respected per slot (does not block other slots)
         elapsed = time.perf_counter() - t0
         remaining = min_delay - elapsed
         if remaining > 0:
@@ -306,15 +306,15 @@ async def run_experiment_async(
     concurrency: int = 5,
 ) -> dict[str, Any]:
     """
-    Runner assíncrono: N chamadas concorrentes controladas por Semaphore.
+    Async runner: N concurrent calls controlled by Semaphore.
 
-    concurrency=5 é o padrão conservador — equivale a ~5x a velocidade do runner
-    sequencial sem risco de throttling para nenhum dos provedores testados.
+    concurrency=5 is the conservative default — equivalent to ~5x the speed of the
+    sequential runner with no throttling risk for any of the tested providers.
     """
     if smoke_test:
         ok = client.smoke_test(invoke_field, invoke_value)
         if not ok:
-            logger.error("Smoke test falhou para %s.", model_alias)
+            logger.error("Smoke test failed for %s.", model_alias)
             return {"ok": False, "error": "smoke_test_failed", "model": model_alias}
 
     ckpt_file = checkpoint_path(ckpt_dir, model_alias, strategy, split)
@@ -324,7 +324,7 @@ async def run_experiment_async(
         (idx, rec) for idx, rec in enumerate(records) if idx not in done
     ]
     logger.info(
-        "Async runner %s × %s × %s: %d/%d pendentes (concurrency=%d)",
+        "Async runner %s x %s x %s: %d/%d pending (concurrency=%d)",
         model_alias, strategy, split, len(pending), n_total, concurrency,
     )
 
@@ -341,7 +341,7 @@ async def run_experiment_async(
     semaphore = asyncio.Semaphore(concurrency)
     progress = {"done": 0, "failures": 0}
 
-    # Cria todas as tasks mas o Semaphore limita execução simultânea
+    # Create all tasks but Semaphore limits simultaneous execution
     tasks = [
         asyncio.create_task(
             _process_one(
@@ -353,7 +353,7 @@ async def run_experiment_async(
         for idx, rec in pending
     ]
 
-    # Aguarda em lotes para poder logar progresso
+    # Wait in batches to log progress
     log_interval = max(50, len(pending) // 20)
     last_logged = 0
     for coro in asyncio.as_completed(tasks):
@@ -361,15 +361,15 @@ async def run_experiment_async(
         if progress["done"] - last_logged >= log_interval or progress["done"] == len(pending):
             cost = client.cost_summary()["total_cost_usd"]
             logger.info(
-                "[%s|%s|%s] %d/%d — custo acum.: $%.4f — falhas: %d",
+                "[%s|%s|%s] %d/%d — accum. cost: $%.4f — failures: %d",
                 model_alias, strategy, split,
                 len(done) + progress["done"], n_total,
                 cost, progress["failures"],
             )
             last_logged = progress["done"]
 
-            # Aborta se muitas falhas — threshold relaxado para amostras pequenas
-            # para não interromper experimentos de validação prematuramente.
+            # Abort if too many failures — relaxed threshold for small samples
+            # to avoid prematurely interrupting validation experiments.
             if progress["done"] >= 50:
                 fail_pct = progress["failures"] / progress["done"]
                 effective_limit = (
@@ -379,7 +379,7 @@ async def run_experiment_async(
                 )
                 if fail_pct > effective_limit:
                     logger.error(
-                        "Abortando: %.0f%% de falhas (limite %.0f%% para n=%d)",
+                        "Aborting: %.0f%% failures (limit %.0f%% for n=%d)",
                         fail_pct * 100, effective_limit * 100, len(pending),
                     )
                     for t in tasks:

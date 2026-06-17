@@ -1,8 +1,8 @@
 """
-Métricas de avaliação — todas as da planilha Métricas_Avaliação_Modelos.xlsx.
+Evaluation metrics — all metrics from the Métricas_Avaliação_Modelos.xlsx spreadsheet.
 
-Idêntico ao pipeline BERT (src/ftr/metrics.py) mas adaptado para o contexto
-de K-Fold: calcula métricas por fold e agrega mean±std.
+Mirrors the BERT pipeline (src/ftr/metrics.py) but adapted for the K-Fold
+context: computes per-fold metrics and aggregates mean±std.
 """
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ def compute_all_metrics(
     labels: list[int] | None = None,
     class_names: list[str] | None = None,
 ) -> dict[str, Any]:
-    """Calcula conjunto completo de métricas."""
+    """Compute the full set of metrics."""
     from sklearn.metrics import (
         accuracy_score, balanced_accuracy_score, classification_report,
         cohen_kappa_score, confusion_matrix, f1_score, matthews_corrcoef,
@@ -52,7 +52,7 @@ def compute_all_metrics(
         "recall_weighted":   float(recall_score(y_true, y_pred, average="weighted", labels=labels, zero_division=0)),
     }
 
-    # Métricas por classe
+    # Per-class metrics
     cr = classification_report(y_true, y_pred, labels=labels, target_names=class_names,
                                 output_dict=True, zero_division=0)
     results["per_class"] = {
@@ -65,7 +65,7 @@ def compute_all_metrics(
         for name in class_names if name in cr
     }
 
-    # Matriz de confusão
+    # Confusion matrix
     cm = confusion_matrix(y_true, y_pred, labels=labels)
     with np.errstate(divide="ignore", invalid="ignore"):
         cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
@@ -74,7 +74,7 @@ def compute_all_metrics(
     results["confusion_matrix_normalized"] = cm_norm.tolist()
     results["confusion_matrix_labels"]     = class_names
 
-    # Métricas probabilísticas
+    # Probabilistic metrics
     if y_proba is not None:
         results["probabilistic"] = _probabilistic_metrics(y_true, np.asarray(y_proba), labels)
     else:
@@ -114,10 +114,10 @@ def _probabilistic_metrics(y_true: np.ndarray, y_proba: np.ndarray, labels: list
         out["log_loss"] = None
 
     try:
-        # y_proba pode ter menos colunas que n_classes em folds com classe ausente
+        # y_proba may have fewer columns than n_classes in folds with missing classes
         n_proba_cols = y_proba.shape[1] if y_proba.ndim == 2 else 0
         if n_proba_cols != n_classes:
-            raise ValueError(f"y_proba tem {n_proba_cols} colunas, esperado {n_classes}")
+            raise ValueError(f"y_proba has {n_proba_cols} columns, expected {n_classes}")
         briers = []
         for j in range(n_classes):
             briers.append(brier_score_loss(y_bin[:, j], y_proba[:, j]))
@@ -125,7 +125,7 @@ def _probabilistic_metrics(y_true: np.ndarray, y_proba: np.ndarray, labels: list
     except Exception:
         out["brier_score_macro"] = None
 
-    # Curvas ROC e PR por classe
+    # Per-class ROC and PR curves
     roc_curves, pr_curves = {}, {}
     from . import ID2LABEL
     for j, lab in enumerate(labels):
@@ -148,7 +148,7 @@ def _probabilistic_metrics(y_true: np.ndarray, y_proba: np.ndarray, labels: list
 
 
 def flatten_metrics(metrics: dict) -> dict[str, float]:
-    """Achata métricas para tabelas comparativas (CSV/XLSX)."""
+    """Flatten metrics for comparative tables (CSV/XLSX)."""
     flat: dict[str, float] = {}
     for k in ("accuracy","balanced_accuracy","mcc","cohen_kappa","f1_macro","f1_micro",
                "f1_weighted","precision_macro","precision_weighted","recall_macro","recall_weighted"):
@@ -164,7 +164,7 @@ def flatten_metrics(metrics: dict) -> dict[str, float]:
 
 
 def aggregate_cv_metrics(fold_metrics: list[dict]) -> dict[str, Any]:
-    """Agrega métricas de K folds em mean±std."""
+    """Aggregate metrics from K folds into mean±std."""
     flat_list = [flatten_metrics(m) for m in fold_metrics]
     keys = set(flat_list[0]) & set.intersection(*(set(f) for f in flat_list))
     agg = {}

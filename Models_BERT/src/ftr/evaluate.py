@@ -1,13 +1,13 @@
 """
-Avaliação completa de um experimento no conjunto de teste.
+Full evaluation of an experiment on the test set.
 
-Gera predições (truncação padrão ou janela deslizante para long-context),
-calcula **todas** as métricas (:mod:`ftr.metrics`), salva em JSON + CSV e produz
-os gráficos de avaliação (:mod:`ftr.viz`) em PT-BR e EN.
+Generates predictions (standard truncation or sliding window for long-context),
+computes **all** metrics (:mod:`ftr.metrics`), saves to JSON + CSV, and produces
+evaluation charts (:mod:`ftr.viz`) in PT-BR and EN.
 
-Função principal: :func:`evaluate_split`, chamada ao final do treino. Também há
-:func:`evaluate_from_dir` para reavaliar um experimento já treinado a partir do
-``best_model`` salvo.
+Main function: :func:`evaluate_split`, called at the end of training. Also provides
+:func:`evaluate_from_dir` to re-evaluate an already-trained experiment from the
+saved ``best_model``.
 """
 
 from __future__ import annotations
@@ -28,15 +28,15 @@ def _softmax(logits: np.ndarray) -> np.ndarray:
 
 
 def _predict_truncation(trainer, tokenizer, df, config):
-    """Predições via Trainer (tokenização com truncação) — caminho rápido/fiel.
+    """Predictions via Trainer (truncation tokenisation) — fast/faithful path.
 
-    Importante: NÃO passamos a coluna ``labels`` ao dataset de predição.
-    Em transformers 4.48, quando ``labels`` estão presentes o modelo computa o
-    loss e ``output.predictions`` retorna uma tupla ``(logits,)`` em vez de
-    ``logits`` diretamente. ``np.asarray((logits,))`` vira shape ``(1, n, 3)``
-    e o softmax / argmax calculam no eixo errado → modelo sempre prediz classe 0.
-    Extraímos ``y_true`` direto do DataFrame (ordem preservada pelo parquet) e
-    passamos apenas texto ao dataset de inferência.
+    Important: we do NOT pass the ``labels`` column to the prediction dataset.
+    In transformers 4.48, when ``labels`` are present the model computes the
+    loss and ``output.predictions`` returns a tuple ``(logits,)`` instead of
+    ``logits`` directly. ``np.asarray((logits,))`` becomes shape ``(1, n, 3)``
+    and softmax / argmax compute on the wrong axis → model always predicts class 0.
+    We extract ``y_true`` directly from the DataFrame (order preserved by the
+    parquet index) and pass only text to the inference dataset.
     """
     from datasets import Dataset
 
@@ -44,12 +44,16 @@ def _predict_truncation(trainer, tokenizer, df, config):
 
     text_column = config["data"]["text_column"]
     label_column = config["data"]["label_column"]
-    tok_fn = make_tokenize_function(tokenizer, text_column, config["tokenization"]["max_length"])
+    is_longformer = config["model"].get("family", "encoder") == "longformer"
+    tok_fn = make_tokenize_function(
+        tokenizer, text_column, config["tokenization"]["max_length"],
+        set_global_attention_cls=is_longformer,
+    )
 
-    # y_true do DataFrame — reset_index garante alinhamento com o DataLoader.
+    # y_true from DataFrame — reset_index ensures alignment with DataLoader.
     y_true = np.asarray(df[label_column].reset_index(drop=True).astype(int))
 
-    # Dataset SEM labels: evita o bug do tuple-output no transformers 4.48.
+    # Dataset WITHOUT labels: avoids the tuple-output bug in transformers 4.48.
     ds = Dataset.from_pandas(
         df[[text_column]].reset_index(drop=True),
         preserve_index=False,
@@ -58,7 +62,7 @@ def _predict_truncation(trainer, tokenizer, df, config):
     output = trainer.predict(ds)
     logits = np.asarray(output.predictions, dtype=float)
 
-    # Defesa extra: se ainda vier como (1, n, 3) por alguma versão, corrige.
+    # Extra guard: if shape is still (1, n, 3) in some version, fix it.
     if logits.ndim == 3 and logits.shape[0] == 1:
         logits = logits[0]
 
@@ -68,7 +72,7 @@ def _predict_truncation(trainer, tokenizer, df, config):
 
 
 def _predict_sliding(trainer, tokenizer, df, config):
-    """Predições via janela deslizante + agregação — para long-context."""
+    """Predictions via sliding window + aggregation — for long-context models."""
     from tqdm.auto import tqdm
 
     from .tokenization import predict_long_text
@@ -95,7 +99,7 @@ def _predict_sliding(trainer, tokenizer, df, config):
 
 
 def evaluate_split(trainer, tokenizer, df, config, exp, logger=None) -> dict:
-    """Avalia o ``df`` (teste), salva métricas + gráficos, retorna o dict de métricas."""
+    """Evaluates ``df`` (test set), saves metrics + charts, returns the metrics dict."""
     strategy = config["tokenization"].get("long_text_strategy", "truncate")
     if strategy == "sliding_window":
         y_true, y_pred, proba = _predict_sliding(trainer, tokenizer, df, config)
@@ -104,11 +108,11 @@ def evaluate_split(trainer, tokenizer, df, config, exp, logger=None) -> dict:
 
     metrics = compute_all_metrics(y_true, y_pred, y_proba=proba)
 
-    # Persistência das métricas.
+    # Persist metrics.
     exp.write_json("metrics/test_metrics.json", metrics)
     _save_metrics_csv(metrics, exp.metrics / "test_metrics_flat.csv")
     _save_per_class_csv(metrics, exp.metrics / "test_per_class.csv")
-    # Predições brutas (para auditoria/reuso), sem o texto.
+    # Raw predictions (for auditing/reuse), without text.
     np.savez_compressed(
         exp.metrics / "test_predictions.npz",
         y_true=y_true, y_pred=y_pred, proba=proba,
@@ -116,7 +120,7 @@ def evaluate_split(trainer, tokenizer, df, config, exp, logger=None) -> dict:
 
     if logger:
         logger.info(
-            "Teste — acc=%.4f f1_macro=%.4f mcc=%.4f",
+            "Test — acc=%.4f f1_macro=%.4f mcc=%.4f",
             metrics["accuracy"], metrics["f1_macro"], metrics["mcc"],
         )
 
@@ -150,7 +154,7 @@ def _make_eval_figures(metrics: dict, trainer, exp, config):
     class_names = metrics.get("confusion_matrix_labels", CLASS_NAMES)
     prob = metrics.get("probabilistic") or {}
 
-    # Curvas de treino/val a partir do log_history (se houver).
+    # Training/val curves from log_history (if available).
     history = getattr(getattr(trainer, "state", None), "log_history", None)
 
     for lang in langs:
@@ -172,10 +176,10 @@ def _make_eval_figures(metrics: dict, trainer, exp, config):
 
 
 # ---------------------------------------------------------------------------
-# Reavaliação a partir de um experimento já treinado
+# Re-evaluation from an already-trained experiment
 # ---------------------------------------------------------------------------
 def evaluate_from_dir(exp_dir: str | Path, config: dict, paths) -> dict:
-    """Recarrega o ``best_model`` de um experimento e reavalia no conjunto de teste."""
+    """Reloads the ``best_model`` from an experiment and re-evaluates on the test set."""
     from transformers import (
         AutoModelForSequenceClassification,
         AutoTokenizer,
@@ -192,14 +196,16 @@ def evaluate_from_dir(exp_dir: str | Path, config: dict, paths) -> dict:
     tokenizer = AutoTokenizer.from_pretrained(str(best))
     model = AutoModelForSequenceClassification.from_pretrained(str(best))
 
-    # Precisão idêntica à usada no treino — evita discrepância CPU vs GPU.
+    # Same precision as used during training — avoids CPU vs GPU discrepancy.
     tr = config.get("train", {})
     prec = _detect_precision(tr.get("precision", "auto"))
 
-    # eval_batch_size: usa o mesmo teto do treino para não causar OOM.
-    train_bs = tr.get("per_device_train_batch_size", 16)
-    cap = tr.get("eval_batch_cap", 128)
-    eval_bs = min(train_bs * tr.get("eval_batch_multiplier", 4), cap)
+    # eval_batch_size: prefer the explicit config value (mandatory for Longformer
+    # where the auto-calc train_bs*4 causes OOM at 4096 tokens).
+    eval_bs = tr.get("per_device_eval_batch_size") or min(
+        tr.get("per_device_train_batch_size", 16) * tr.get("eval_batch_multiplier", 4),
+        tr.get("eval_batch_cap", 128),
+    )
 
     try:
         args = TrainingArguments(
@@ -208,11 +214,11 @@ def evaluate_from_dir(exp_dir: str | Path, config: dict, paths) -> dict:
             per_device_eval_batch_size=int(eval_bs),
             bf16=prec["bf16"],
             fp16=prec["fp16"],
-            dataloader_num_workers=0,  # evita problemas de fork no Colab
+            dataloader_num_workers=0,  # avoids fork issues on Colab
             seed=config.get("seed", 42),
         )
     except TypeError:
-        # Versão antiga do transformers sem alguns parâmetros
+        # Old transformers version without some parameters
         args = TrainingArguments(
             output_dir=str(exp_dir / "tmp_eval"),
             report_to=["none"],

@@ -1,43 +1,43 @@
-# Pipeline LLM — Fato / Tese / Ruído
+# LLM Pipeline — Fato / Tese / Ruído
 
-Benchmark length-aware para classificação jurídica em português.
+Length-aware benchmark for legal text classification in Portuguese.
 
-## Estrutura
+## Structure
 
 ```
 LLMs/
 ├── configs/
-│   ├── _base_llm.yaml          # Config base herdada por todos
-│   ├── claude_sonnet_46.yaml   # Elite / grande
-│   ├── qwen3_32b.yaml          # Forte / médio
-│   ├── mistral_large_3.yaml    # Top / grande
-│   ├── gemma_3_27b.yaml        # Bom / médio
-│   ├── deepseek_v32.yaml       # Top / grande
-│   ├── claude_3_haiku.yaml     # Leve / pequeno
-│   ├── magistral_small_2509.yaml # Forte / médio
-│   └── sabia4.yaml             # Maritaca / brasileiro
-├── ftr_llm/                    # Pacote Python do pipeline
+│   ├── _base_llm.yaml          # Base config inherited by all models
+│   ├── claude_sonnet_46.yaml   # Elite / large
+│   ├── qwen3_32b.yaml          # Strong / medium
+│   ├── mistral_large_3.yaml    # Top / large
+│   ├── gemma_3_27b.yaml        # Good / medium
+│   ├── deepseek_v32.yaml       # Top / large
+│   ├── claude_3_haiku.yaml     # Light / small
+│   ├── magistral_small_2509.yaml # Strong / medium
+│   └── sabia4.yaml             # Maritaca / Brazilian
+├── ftr_llm/                    # Python pipeline package
 │   ├── __init__.py
 │   ├── config.py
-│   ├── dataset.py              # Reutiliza src/ftr/anonymize + preprocess
+│   ├── dataset.py              # Reuses src/ftr/anonymize + preprocess
 │   ├── prompts.py              # zero_shot, few_shot, evidence_constrained, decomposed
-│   ├── bedrock_client.py       # Retry + fallback + custo
+│   ├── bedrock_client.py       # Retry + fallback + cost
 │   ├── maritaca_client.py      # Sabiá-4
-│   ├── parser.py               # JSON parser robusto
-│   ├── checkpoint.py           # JSONL checkpoint por linha
-│   ├── runner.py               # Loop principal com retomada
-│   ├── evaluate.py             # Métricas + análise por bin
-│   └── viz.py                  # Gráficos PT e EN
+│   ├── parser.py               # Robust JSON parser
+│   ├── checkpoint.py           # Per-line JSONL checkpoint
+│   ├── runner.py               # Main loop with resumption
+│   ├── evaluate.py             # Metrics + per-bin analysis
+│   └── viz.py                  # Plots (PT and EN)
 ├── scripts/
-│   ├── 00_prepare_dataset.py   # Pré-processa + anonimiza + split
-│   ├── 01_smoke_test_models.py # Testa todos os modelos com "oi"
-│   ├── 02_run_experiment.py    # Roda 1 modelo × N estratégias
-│   └── 03_consolidate_results.py # Consolida + gráficos finais
+│   ├── 00_prepare_dataset.py   # Preprocess + anonymize + split
+│   ├── 01_smoke_test_models.py # Test all models with "hi"
+│   ├── 02_run_experiment.py    # Run 1 model x N strategies
+│   └── 03_consolidate_results.py # Consolidate + final plots
 ├── data/
 │   ├── splits/                 # train.json, val.json, test.json
-│   ├── checkpoints/            # JSONL por modelo × estratégia
-│   ├── results/                # JSON + CSV de métricas
-│   └── reports/                # Gráficos PT e EN
+│   ├── checkpoints/            # JSONL per model x strategy
+│   ├── results/                # JSON + CSV metrics
+│   └── reports/                # Plots (PT and EN)
 ├── bedrock_modelos_refatorado.json
 ├── .env
 └── requirements_llm.txt
@@ -46,56 +46,56 @@ LLMs/
 ## Quick start
 
 ```bash
-# 1. Instalar dependências
+# 1. Install dependencies
 pip install -r requirements_llm.txt
 
-# 2. Preparar dataset (anonimiza + split — só precisa rodar uma vez)
+# 2. Prepare dataset (anonymize + split — only needs to run once)
 python scripts/00_prepare_dataset.py
 
-# 3. Testar se os modelos estão acessíveis
+# 3. Test if models are accessible
 python scripts/01_smoke_test_models.py
 
-# 4. Validação rápida do pipeline (30 exemplos, 1 modelo, 1 estratégia)
+# 4. Fast pipeline validation (30 examples, 1 model, 1 strategy)
 python scripts/02_run_experiment.py --model claude_3_haiku --sample-n 30 --strategies zero_shot
 
-# 5. Rodar experimento completo no val set
+# 5. Run full experiment on val set
 python scripts/02_run_experiment.py --model claude_3_haiku --split val
 
-# 6. Rodar no test set (avaliação final — só depois de ajustar prompts no val)
+# 6. Run on test set (final evaluation — only after tuning prompts on val)
 python scripts/02_run_experiment.py --model claude_sonnet_46 --split test
 
-# 7. Consolidar todos os resultados e gerar gráficos
+# 7. Consolidate all results and generate plots
 python scripts/03_consolidate_results.py
 ```
 
-## Modelos (8)
+## Models (8)
 
-| Alias | Modelo | Tier | Via |
+| Alias | Model | Tier | Via |
 |---|---|---|---|
-| claude_sonnet_46 | Claude Sonnet 4.6 | Elite / grande | Bedrock |
-| qwen3_32b | Qwen3 32B | Forte / médio | Bedrock |
-| mistral_large_3 | Mistral Large 3 | Top / grande | Bedrock |
-| gemma_3_27b | Gemma 3 27B | Bom / médio | Bedrock |
-| deepseek_v32 | DeepSeek V3.2 | Top / grande | Bedrock |
-| claude_3_haiku | Claude 3 Haiku | Leve / pequeno | Bedrock |
-| magistral_small_2509 | Magistral Small | Forte / médio | Bedrock |
-| sabia4 | Sabiá-4 | BR / médio | Maritaca API |
+| claude_sonnet_46 | Claude Sonnet 4.6 | Elite / large | Bedrock |
+| qwen3_32b | Qwen3 32B | Strong / medium | Bedrock |
+| mistral_large_3 | Mistral Large 3 | Top / large | Bedrock |
+| gemma_3_27b | Gemma 3 27B | Good / medium | Bedrock |
+| deepseek_v32 | DeepSeek V3.2 | Top / large | Bedrock |
+| claude_3_haiku | Claude 3 Haiku | Light / small | Bedrock |
+| magistral_small_2509 | Magistral Small | Strong / medium | Bedrock |
+| sabia4 | Sabiá-4 | BR / medium | Maritaca API |
 
-## Estratégias (4)
+## Strategies (4)
 
-| Estratégia | Descrição |
+| Strategy | Description |
 |---|---|
-| zero_shot | Instrução direta sem exemplos |
-| few_shot | 3 exemplos fixos por classe |
-| evidence_constrained | few-shot + saída com trecho evidência |
-| decomposed | 3 perguntas jurídicas intermediárias → classe |
+| zero_shot | Direct instruction without examples |
+| few_shot | 3 fixed examples per class |
+| evidence_constrained | few-shot + output with evidence excerpt |
+| decomposed | 3 intermediate legal questions -> class |
 
-## Retomada de checkpoint
+## Checkpoint resumption
 
-Se o processo cair, basta rodar o mesmo comando novamente.
-O runner detecta o checkpoint e continua do último índice salvo.
+If the process crashes, just run the same command again.
+The runner detects the checkpoint and continues from the last saved index.
 
-## Variáveis de ambiente (.env)
+## Environment variables (.env)
 
 ```
 AWS_ACCESS_KEY_ID=...
