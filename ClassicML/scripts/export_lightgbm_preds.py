@@ -7,7 +7,7 @@ produced the paper result (F1-macro ~0.973), predicts on the same test.jsonl use
 by the BERTs, and saves test_predictions.npz in the SAME format and ORDER as the
 BERT npz files.
 
-Usage (from E:\\DIACDE\\Fato_Tese_Ruido\\ClassicML):
+Usage (from E:\\Anonymous\\Fato_Tese_Ruido\\ClassicML):
     venv\\Scripts\\python.exe scripts\\export_lightgbm_preds.py
 """
 import json, pickle, sys

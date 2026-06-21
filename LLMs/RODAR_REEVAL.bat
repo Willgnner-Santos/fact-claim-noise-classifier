@@ -3,7 +3,7 @@ REM ============================================================
 REM Re-evaluate LLMs on the canonical test set (BERT) - Fact/Claim/Noise
 REM Resumable: if interrupted, re-run to continue from where it stopped.
 REM ============================================================
-cd /d "E:\DIACDE\Fato_Tese_Ruido\LLMs"
+cd /d "E:\Anonymous\Fato_Tese_Ruido\LLMs"
 set PYTHONIOENCODING=utf-8
 
 echo.
